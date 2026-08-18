@@ -3,8 +3,10 @@
 namespace TwillSeo\Models\Behaviors;
 
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Throwable;
 use TwillSeo\Models\SeoEntry;
 use TwillSeo\Models\SeoEntryTranslation;
+use TwillSeo\Services\Sitemap\SitemapCache;
 
 /**
  * Attaches Twill SEO storage to any host Eloquent model, Twill module or not
@@ -89,6 +91,22 @@ trait HasSeo
             // translations) with it. Mirrors HasMedias::bootHasMedias().
             if (! method_exists($model, 'isForceDeleting') || $model->isForceDeleting()) {
                 $model->seoEntry()->delete();
+            }
+        });
+
+        // A separate listener (not folded into the one above): this one must
+        // fire on EVERY delete, soft or force, unlike the isForceDeleting()
+        // gate above. A soft-deleted row drops out of the default (non-
+        // trashed) Eloquent query SitemapBuilder queries immediately —
+        // without this, a sitemap page cached before the delete would keep
+        // listing it as a real <url> until the cache's TTL expired on its
+        // own. Never allowed to break a delete — wrapped exactly like the
+        // ScoreCache/SitemapCache calls in HandleSeo::afterSaveHandleSeo.
+        static::deleted(static function ($model): void {
+            try {
+                app(SitemapCache::class)->forgetFor($model);
+            } catch (Throwable $e) {
+                report($e);
             }
         });
     }

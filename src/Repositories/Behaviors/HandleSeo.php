@@ -5,6 +5,7 @@ namespace TwillSeo\Repositories\Behaviors;
 use Throwable;
 use TwillSeo\Models\SeoEntry;
 use TwillSeo\Services\ScoreCache;
+use TwillSeo\Services\Sitemap\SitemapCache;
 
 /**
  * Wires the package's seo_* form fields into Twill's save pipeline via the
@@ -125,6 +126,17 @@ trait HandleSeo
         // point is allowed to escape and take the save down with it.
         try {
             app(ScoreCache::class)->refresh($object);
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        // A save can flip published/noindex/URL-affecting fields (or simply
+        // change updated_at), so any cached sitemap page or index entry for
+        // this model's registry type could now be stale. Same never-break-
+        // the-save guard as ScoreCache above; forgetFor() is itself a no-op
+        // for a model this package does not manage.
+        try {
+            app(SitemapCache::class)->forgetFor($object);
         } catch (Throwable $e) {
             report($e);
         }
