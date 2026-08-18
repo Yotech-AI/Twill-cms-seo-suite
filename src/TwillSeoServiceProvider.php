@@ -19,6 +19,8 @@ use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
 use TwillSeo\Services\Resolvers\UrlResolver;
 use TwillSeo\Services\Settings\SeoSettings;
+use TwillSeo\Services\Sitemap\SitemapBuilder;
+use TwillSeo\Services\Sitemap\SitemapCache;
 use TwillSeo\Support\TranslatorMessageRenderer;
 
 /**
@@ -87,6 +89,16 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         // dependency resolves through the singleton just bound above.
         $this->app->bind(SeoContentResolver::class, RenderedBlocksResolver::class);
 
+        // Stateless (see SitemapBuilder's own doc comment); singleton for
+        // the same reason as UrlResolver/SeoResolver above. Bound outside
+        // the config('twill-seo.enabled') gate below, like every other
+        // service here, because HandleSeo::afterSaveHandleSeo and
+        // HasSeo::bootHasSeo call SitemapCache::forgetFor() unconditionally
+        // on every save/delete of a registered model, regardless of whether
+        // this package's own routes/views ever booted.
+        $this->app->singleton(SitemapBuilder::class);
+        $this->app->singleton(SitemapCache::class);
+
         $this->app->singleton(AnalysisRunner::class, function ($app) {
             return new AnalysisRunner(
                 new HtmlParser,
@@ -121,6 +133,7 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         Blade::componentNamespace('TwillSeo\\View\\Components', 'twill-seo');
 
         $this->registerRoutes();
+        $this->registerPublicRoutes();
         $this->registerNavigation();
     }
 
@@ -192,6 +205,34 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
                     ->where('file', 'twill-seo\.(iife\.js|css)')
                     ->name('asset');
             });
+    }
+
+    /**
+     * GET /sitemap.xml + GET /sitemap-{type}-{page}.xml — root-level, no
+     * admin prefix. Registered unconditionally whenever the package's routes
+     * are registered at all (same enabled/routesAreCached gating as
+     * registerRoutes() above): SitemapController, not route registration,
+     * decides per-request whether the sitemap feature is on, since that
+     * answer lives in the DB-backed settings row (SeoSettings::feature()),
+     * and a fresh install's route registration must survive running before
+     * `migrate` ever has.
+     *
+     * No middleware at all — not even 'web' — because a sitemap is a public,
+     * cacheable XML document with no session/cookies/CSRF concerns, and
+     * crawlers request it far more often than browsers do. Verified under
+     * Testbench (SitemapTest) that a route with zero middleware groups
+     * responds normally: no missing-session-driver error, no missing-
+     * encrypter error, no CSRF token requirement — 'web' exists to protect
+     * stateful features this route deliberately has none of.
+     */
+    protected function registerPublicRoutes(): void
+    {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        Route::name('twill-seo.sitemap.')
+            ->group(__DIR__.'/../routes/public.php');
     }
 
     protected function registerNavigation(): void
