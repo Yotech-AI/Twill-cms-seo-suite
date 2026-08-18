@@ -2,7 +2,15 @@
 
 namespace TwillSeo\Analysis\Assessor;
 
+use TwillSeo\Analysis\Assessment\Config\SentenceLengthThresholds;
 use TwillSeo\Analysis\Assessment\Config\TextLengthThresholds;
+use TwillSeo\Analysis\Assessment\Readability\ParagraphTooLongAssessment;
+use TwillSeo\Analysis\Assessment\Readability\PassiveVoiceAssessment;
+use TwillSeo\Analysis\Assessment\Readability\SentenceBeginningsAssessment;
+use TwillSeo\Analysis\Assessment\Readability\SentenceLengthAssessment;
+use TwillSeo\Analysis\Assessment\Readability\SubheadingsTooLongAssessment;
+use TwillSeo\Analysis\Assessment\Readability\TextPresenceAssessment;
+use TwillSeo\Analysis\Assessment\Readability\TransitionWordsAssessment;
 use TwillSeo\Analysis\Assessment\Seo\ExternalLinksAssessment;
 use TwillSeo\Analysis\Assessment\Seo\FunctionWordsInKeyphraseAssessment;
 use TwillSeo\Analysis\Assessment\Seo\ImageKeyphraseAssessment;
@@ -54,16 +62,18 @@ final class AssessorFactory
         ], new SeoScoreAggregator);
     }
 
-    /**
-     * @param  bool  $cornerstone  unused while the list is empty; kept because the
-     *                             readability assessments landing here have cornerstone
-     *                             variants of their own
-     */
     public function readability(bool $cornerstone = false): Assessor
     {
-        // Empty on purpose: the readability assessments need the language
-        // packs, which do not exist yet. The aggregator turns an empty list
-        // into "not available", which is the honest answer meanwhile.
-        return new Assessor([], new ReadabilityPenaltyAggregator);
+        return new Assessor([
+            new SentenceLengthAssessment($cornerstone ? SentenceLengthThresholds::cornerstone() : SentenceLengthThresholds::default()),
+            new ParagraphTooLongAssessment,
+            new SubheadingsTooLongAssessment,
+            // The last four ask the language pack for data a generic pack does
+            // not have, and quietly leave themselves out when it does not.
+            new SentenceBeginningsAssessment,
+            new TransitionWordsAssessment,
+            new PassiveVoiceAssessment,
+            new TextPresenceAssessment,
+        ], new ReadabilityPenaltyAggregator);
     }
 }

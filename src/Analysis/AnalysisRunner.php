@@ -12,6 +12,7 @@ use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Analysis\Report\AnalysisReport;
 use TwillSeo\Analysis\Report\Insights;
 use TwillSeo\Analysis\Report\ScoreSection;
+use TwillSeo\Analysis\Research\FleschReadingEase;
 use TwillSeo\Analysis\Research\WordCount;
 use TwillSeo\Analysis\Support\NullKeyphraseUsageProvider;
 
@@ -67,8 +68,14 @@ final class AnalysisRunner
                 ? ScoreSection::fromAssessorResult($this->assessors->readability($options->cornerstone)->run($context))
                 : ScoreSection::empty(),
             // Reuses the word count the text length assessment already asked
-            // for, through the context memo.
-            $options->insights ? Insights::forWordCount($context->research(WordCount::class)) : null,
+            // for, through the context memo; the reading ease is null unless
+            // the language pack can count syllables.
+            $options->insights
+                ? Insights::forWordCount(
+                    $context->research(WordCount::class),
+                    $context->research(FleschReadingEase::class),
+                )
+                : null,
         );
     }
 }

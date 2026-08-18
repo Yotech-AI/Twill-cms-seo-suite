@@ -63,6 +63,31 @@ it('captures headings with their level in document order', function (bool $legac
         ->and($content->countHeadingsOfLevel(4))->toBe(0);
 })->with('analysis html backends');
 
+it('records where a heading breaks the run of paragraphs', function (bool $legacy) {
+    $content = (new HtmlParser($legacy))->parse(
+        '<p>Intro one</p><p>Intro two</p><h2>First section</h2><p>Body</p><h3>Deeper</h3><p>More</p>'
+    );
+
+    // The index is where the next paragraph starts, so the run before the
+    // first heading is paragraphs 0 and 1.
+    expect(array_map(fn ($b) => [$b->level, $b->paragraphIndex], $content->headingBoundaries))
+        ->toBe([[2, 2], [3, 3]]);
+})->with('analysis html backends');
+
+it('records a heading that opens the text as a boundary at zero', function (bool $legacy) {
+    $content = (new HtmlParser($legacy))->parse('<h2>Title</h2><p>Body</p>');
+
+    expect(array_map(fn ($b) => [$b->level, $b->paragraphIndex], $content->headingBoundaries))
+        ->toBe([[2, 0]]);
+})->with('analysis html backends');
+
+it('records boundaries for headings nested inside a block', function (bool $legacy) {
+    $content = (new HtmlParser($legacy))->parse('<div><p>One</p><section><h2>A</h2><p>Two</p></section></div>');
+
+    expect(array_map(fn ($b) => [$b->level, $b->paragraphIndex], $content->headingBoundaries))
+        ->toBe([[2, 1]]);
+})->with('analysis html backends');
+
 it('tells a missing alt apart from an empty one', function (bool $legacy) {
     $content = parseFixture('images', $legacy);
 
@@ -149,7 +174,8 @@ it('returns empty content for an empty fragment', function (bool $legacy) {
         ->and($content->paragraphs)->toBe([])
         ->and($content->headings)->toBe([])
         ->and($content->images)->toBe([])
-        ->and($content->links)->toBe([]);
+        ->and($content->links)->toBe([])
+        ->and($content->headingBoundaries)->toBe([]);
 })->with('analysis html backends');
 
 it('parses every fixture identically on both backends', function (string $fixture) {

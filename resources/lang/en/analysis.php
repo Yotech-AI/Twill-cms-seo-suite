@@ -120,6 +120,48 @@ return [
         'used_multiple' => 'This keyphrase is already used on :count other pages. They will compete with each other in the results — give each page a phrase of its own.',
     ],
 
+    'sentence_length' => [
+        'good' => ':percentage percent of the sentences are longer than :limit words, which is within the comfortable range.',
+        'some_long' => ':percentage percent of the sentences are longer than :limit words. Shorten a few of them to keep the text moving.',
+        'too_many_long' => ':percentage percent of the sentences are longer than :limit words. Split the longest ones so a reader can follow them in one pass.',
+    ],
+
+    'paragraph_too_long' => [
+        'good' => 'The longest paragraph is :words words, within the :max that reads comfortably.',
+        'slightly_long' => 'The longest paragraph is :words words, just over the :max that reads comfortably. Consider splitting it.',
+        'too_long' => 'The longest paragraph is :words words, well over the :max that reads comfortably. Break it up at the turns in the argument.',
+    ],
+
+    'subheadings_too_long' => [
+        'short_text' => 'The text is short enough to read without subheadings.',
+        'none' => 'A text of :words words has no subheadings at all. Add them so a reader can find the part they came for.',
+        'good' => 'The longest stretch between subheadings is :words words, within the :max a reader will follow.',
+        'long_section' => 'The longest stretch between subheadings is :words words, just over the :max a reader will follow. Consider another subheading.',
+        'too_long_section' => 'The longest stretch between subheadings is :words words, over the :max a reader will follow. Add a subheading where the subject turns.',
+    ],
+
+    'sentence_beginnings' => [
+        'varied' => 'The sentences do not all start the same way.',
+        'repeated' => ':count sentences in a row start with ":word". Vary the openings so the text does not read as a list.',
+    ],
+
+    'transition_words' => [
+        'short_text' => 'The text is short enough to follow without signposting.',
+        'good' => ':percentage percent of the sentences use a transition word, which is enough to follow the argument.',
+        'some' => ':percentage percent of the sentences use a transition word. A few more would make the thread easier to follow.',
+        'few' => 'Only :percentage percent of the sentences use a transition word. Signpost how one sentence follows from the last, so the text reads as an argument rather than a list.',
+    ],
+
+    'passive_voice' => [
+        'good' => ':percentage percent of the sentences are in the passive voice, which is within the normal range.',
+        'some' => ':percentage percent of the sentences are in the passive voice. Rewriting a few of them in the active voice would read more directly.',
+        'too_many' => ':percentage percent of the sentences are in the passive voice. Say who does what in at least some of them — active sentences are shorter and easier to follow.',
+    ],
+
+    'text_presence' => [
+        'too_little' => 'There is not enough text on this page to judge how it reads. Write a few paragraphs and the readability analysis will have something to work with.',
+    ],
+
     'internal_links' => [
         'none' => 'The text links to none of your other pages. Add internal links so readers and search engines can reach related content.',
         'all_nofollow' => 'Every internal link in the text is nofollow. Remove nofollow from the links that should pass value to your own pages.',

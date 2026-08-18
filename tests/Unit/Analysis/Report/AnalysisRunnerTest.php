@@ -140,9 +140,24 @@ it('runs the keyphrase assessments once a paper has a keyphrase', function () {
     ]);
 });
 
-it('reports readability as not available until it has assessments', function () {
-    expect(reportOf(fixturePaper())['readability'])
-        ->toBe(['score' => 0, 'rating' => 'not-available', 'results' => []]);
+it('reports the readability checks the language pack can actually run', function () {
+    $report = reportOf(fixturePaper());
+
+    // The generic pack has no first word, transition or passive data, so those
+    // three assessments leave themselves out; the language-free ones still run.
+    expect(array_column($report['readability']['results'], 'id'))
+        ->toBe(['sentenceLength', 'paragraphTooLong', 'subheadingsTooLong'])
+        ->and($report['readability']['score'])->toBe(90)
+        ->and($report['readability']['rating'])->toBe('good');
+});
+
+it('reports readability as not available for a paper with no text', function () {
+    // Only the "there is nothing here" assessment ran, and one counted result
+    // is not a readability verdict.
+    $report = reportOf(Paper::builder()->title('A title')->build());
+
+    expect(array_column($report['readability']['results'], 'id'))->toBe(['textPresence'])
+        ->and($report['readability'])->toMatchArray(['score' => 0, 'rating' => 'not-available']);
 });
 
 it('reports insights with the flesch keys already present', function () {
@@ -232,9 +247,20 @@ it('returns an empty section when a section is switched off', function () {
 });
 
 it('encodes to json without losing the shape', function () {
-    $json = json_decode((string) json_encode(runner()->analyze(fixturePaper())), true);
+    // JSON_PRESERVE_ZERO_FRACTION is what keeps a percentage of 0.0 a float
+    // rather than an int on the way back: some assessment parameters are
+    // fractions, and a consumer that compares types would see them change.
+    $json = json_decode((string) json_encode(runner()->analyze(fixturePaper()), JSON_PRESERVE_ZERO_FRACTION), true);
 
     expect($json)->toBe(reportOf(fixturePaper()));
+});
+
+it('encodes to json a plain consumer can read, fractions or not', function () {
+    $json = json_decode((string) json_encode(runner()->analyze(fixturePaper())), true);
+
+    // Without the flag a whole-numbered float comes back as an int, which is
+    // the same number to every consumer that matters.
+    expect($json)->toEqual(reportOf(fixturePaper()));
 });
 
 it('returns a report rather than throwing on unparseable markup', function () {

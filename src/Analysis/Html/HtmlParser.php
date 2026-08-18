@@ -65,7 +65,8 @@ final class HtmlParser
         }
 
         $paragraphs = [];
-        $this->collectParagraphs($root, $paragraphs);
+        $boundaries = [];
+        $this->collectParagraphs($root, $paragraphs, $boundaries);
 
         $headings = [];
         $images = [];
@@ -93,7 +94,7 @@ final class HtmlParser
             }
         }
 
-        return new ParsedContent($this->textOf($root), $paragraphs, $headings, $images, $links);
+        return new ParsedContent($this->textOf($root), $paragraphs, $headings, $images, $links, $boundaries);
     }
 
     private function loadRoot(string $html): DOMNode|Node|null
@@ -169,8 +170,9 @@ final class HtmlParser
 
     /**
      * @param  list<Paragraph>  $paragraphs
+     * @param  list<HeadingBoundary>  $boundaries
      */
-    private function collectParagraphs(DOMNode|Node $node, array &$paragraphs): void
+    private function collectParagraphs(DOMNode|Node $node, array &$paragraphs, array &$boundaries): void
     {
         $buffer = [];
 
@@ -192,9 +194,11 @@ final class HtmlParser
             }
 
             // Headings are their own list, but they still end whatever inline
-            // run preceded them.
+            // run preceded them — and that seam is what the section length
+            // assessment reads.
             if (in_array($tag, self::HEADING_TAGS, true)) {
                 $this->flushParagraphs($buffer, $paragraphs);
+                $boundaries[] = new HeadingBoundary((int) substr($tag, 1), count($paragraphs));
 
                 continue;
             }
@@ -206,7 +210,7 @@ final class HtmlParser
             }
 
             $this->flushParagraphs($buffer, $paragraphs);
-            $this->collectParagraphs($child, $paragraphs);
+            $this->collectParagraphs($child, $paragraphs, $boundaries);
         }
 
         $this->flushParagraphs($buffer, $paragraphs);

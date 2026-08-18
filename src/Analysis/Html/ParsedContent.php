@@ -14,6 +14,7 @@ final readonly class ParsedContent
      * @param  list<Heading>  $headings
      * @param  list<Image>  $images
      * @param  list<Link>  $links
+     * @param  list<HeadingBoundary>  $headingBoundaries  in document order
      */
     public function __construct(
         public string $plainText,
@@ -21,11 +22,12 @@ final readonly class ParsedContent
         public array $headings,
         public array $images,
         public array $links,
+        public array $headingBoundaries = [],
     ) {}
 
     public static function empty(): self
     {
-        return new self('', [], [], [], []);
+        return new self('', [], [], [], [], []);
     }
 
     public function countHeadingsOfLevel(int $level): int
