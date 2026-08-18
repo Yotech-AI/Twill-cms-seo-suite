@@ -10,6 +10,7 @@ use TwillSeo\Analysis\Assessor\AssessorFactory;
 use TwillSeo\Analysis\Html\HtmlParser;
 use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Contracts\SeoContentResolver;
+use TwillSeo\Http\Controllers\AssetController;
 use TwillSeo\Services\KeyphraseUsage;
 use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
@@ -126,6 +127,14 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'twill-seo-migrations');
+
+        // Optional: the assets are served from a package route by default
+        // (registerRoutes() below) and never need publishing. Publishing
+        // them only shortens the URL — AssetController::url() prefers a
+        // published copy automatically once one exists.
+        $this->publishes([
+            __DIR__.'/../resources/dist' => public_path('vendor/twill-seo'),
+        ], 'twill-seo-assets');
     }
 
     protected function registerRoutes(): void
@@ -140,6 +149,22 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
             ->prefix(rtrim(ltrim(config('twill.admin_app_path', 'admin'), '/'), '/').'/seo')
             ->name(config('twill.admin_route_name_prefix', 'twill.').'seo.')
             ->group(__DIR__.'/../routes/admin.php');
+
+        // Built JS/CSS, served with a far-future cache header and an ETag so
+        // no publish step is required and the files can never go stale. A
+        // separate, lighter web-only group (no twill_auth/impersonate/
+        // localization): every other admin page needs this JS to even
+        // render, so it cannot itself sit behind the auth gate it would
+        // otherwise need it to pass first. Mirrors the twill-cms-ai-assistent
+        // sibling's own asset route exactly.
+        Route::middleware(['web'])
+            ->prefix(rtrim(ltrim(config('twill.admin_app_path', 'admin'), '/'), '/').'/seo')
+            ->name(config('twill.admin_route_name_prefix', 'twill.').'seo.')
+            ->group(function (): void {
+                Route::get('asset/{file}', AssetController::class)
+                    ->where('file', 'twill-seo\.(iife\.js|css)')
+                    ->name('asset');
+            });
     }
 
     protected function registerNavigation(): void
