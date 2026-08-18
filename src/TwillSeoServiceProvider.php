@@ -14,6 +14,7 @@ use TwillSeo\Http\Controllers\AssetController;
 use TwillSeo\Services\KeyphraseUsage;
 use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
+use TwillSeo\Services\Resolvers\UrlResolver;
 use TwillSeo\Support\TranslatorMessageRenderer;
 use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
 
@@ -58,6 +59,11 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
     protected function registerAnalysisServices(): void
     {
         $this->app->singleton(ModelRegistry::class);
+
+        // Stateless given its own (singleton) ModelRegistry dependency, and
+        // shared by PaperFactory, ScoreCache and (Task 7) the head-rendering
+        // meta layer — one instance per request is enough.
+        $this->app->singleton(UrlResolver::class);
 
         // The default resolver for any registry entry with no `content`
         // class of its own; RenderedBlocksResolver's own ModelRegistry

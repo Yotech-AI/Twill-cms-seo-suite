@@ -8,6 +8,7 @@ use Throwable;
 use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Contracts\SeoContentResolver;
 use TwillSeo\Models\SeoEntryTranslation;
+use TwillSeo\Services\Resolvers\UrlResolver;
 use TwillSeo\Support\TranslatedAttribute;
 
 /**
@@ -22,6 +23,7 @@ final class PaperFactory
     public function __construct(
         private readonly ModelRegistry $registry,
         private readonly SeoContentResolver $resolver,
+        private readonly UrlResolver $urlResolver,
     ) {}
 
     /**
@@ -43,7 +45,7 @@ final class PaperFactory
             ->titleWidth($this->resolveTitleWidth($overrides))
             ->description($overrides['seo_description'] ?? $seo?->seo_description ?? '')
             ->slug($this->resolveSlug($model, $overrides, $locale))
-            ->permalink($this->resolvePermalink($model, $config, $locale))
+            ->permalink($this->resolvePermalink($model, $locale))
             ->locale($locale)
             ->date($this->resolveDate($model))
             ->customData($this->customData($model, $key))
@@ -135,36 +137,16 @@ final class PaperFactory
     }
 
     /**
-     * Permalink resolution (Task 7 extracts this into a UrlResolver): a
-     * registry `url` callback if configured, else the model's own
-     * getFullUrl(), else empty. Every step is independently guarded — a
-     * throwing host callback still falls through to getFullUrl() rather than
-     * losing the permalink entirely, matching the rest of this class's
-     * "analysis must never break on bad host wiring" posture.
-     *
-     * @param  array<string,mixed>  $config
+     * Permalink resolution now lives in UrlResolver (Task 7), which every
+     * other consumer of "this page's URL" — canonical link, og:url, hreflang
+     * alternates — goes through too, so the analysis engine and the
+     * rendered head can never quietly disagree about a model's URL. The `??
+     * ''` preserves this method's own pre-Task-7 contract (a definite
+     * string, never null) unchanged for Paper::permalink.
      */
-    private function resolvePermalink(object $model, array $config, string $locale): string
+    private function resolvePermalink(object $model, string $locale): string
     {
-        $callback = $config['url'] ?? null;
-
-        if (is_callable($callback)) {
-            try {
-                return (string) $callback($model, $locale);
-            } catch (Throwable $e) {
-                report($e);
-            }
-        }
-
-        if (method_exists($model, 'getFullUrl')) {
-            try {
-                return $model->getFullUrl();
-            } catch (Throwable $e) {
-                report($e);
-            }
-        }
-
-        return '';
+        return $this->urlResolver->resolve($model, $locale) ?? '';
     }
 
     private function resolveDate(object $model): ?DateTimeImmutable
