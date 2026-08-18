@@ -3,7 +3,7 @@
 namespace TwillSeo\Console;
 
 use Illuminate\Console\Command;
-use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
+use TwillSeo\PluginPage\TwillPluginServiceProvider;
 
 /**
  * Cheap sanity check for the shared Plugins-page wiring and package config,
@@ -25,7 +25,7 @@ class DoctorCommand extends Command
         $this->printCheck(
             $registryBound,
             'Plugins-page registry binding is present.',
-            'Plugins-page registry binding is missing — is yotech-ai/twill-plugin-support installed?'
+            'Plugins-page registry binding is missing — is TwillSeoServiceProvider loaded?'
         );
 
         $registered = false;

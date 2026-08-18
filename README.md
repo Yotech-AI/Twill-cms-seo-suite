@@ -16,7 +16,13 @@ Under construction. This package currently boots, registers itself on the shared
 
 ## The Plugins page
 
-This package registers itself on the shared Plugins page provided by [`yotech-ai/twill-plugin-support`](https://github.com/Yotech-AI/twill-plugin-support), which adds a **Plugins** entry to the admin navigation listing every installed Yotech plugin. Nothing to configure.
+The shared Plugins-page code ships built in — no separate dependency required. It adds a **Plugins** entry to the admin navigation (next to Media Library) listing every installed Yotech plugin, with a link to each plugin's own admin screen. Nothing to configure.
+
+### How it works
+
+- Shared state lives in the Laravel container under two well-known keys: `yotech.twill-plugins.registry` (an `ArrayObject` of plugin manifests, plain arrays only) and `yotech.twill-plugins.page-owner` (the provider class that owns the page).
+- The **first** Yotech plugin provider to register binds both keys, registers the `plugins` admin route/controller/view, and owns the page.
+- Every **later** Yotech plugin provider — even one vendoring a differently-namespaced copy of this same code, as this package does — detects the existing bindings and only adds its own manifest to the registry, so an install with several Yotech plugins still shows a single Plugins page listing all of them.
 
 ## License
 

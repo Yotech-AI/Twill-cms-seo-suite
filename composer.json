@@ -10,8 +10,7 @@
         "ext-dom": "*",
         "ext-mbstring": "*",
         "illuminate/support": "^12.0 || ^13.0",
-        "area17/twill": "^3.6",
-        "yotech-ai/twill-plugin-support": "^1.0"
+        "area17/twill": "^3.6"
     },
     "require-dev": {
         "orchestra/testbench": "^10.0 || ^11.0",
@@ -32,13 +31,5 @@
         "allow-plugins": { "pestphp/pest-plugin": true }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "name": "twill-plugin-support",
-            "type": "path",
-            "url": "../twill-plugin-support",
-            "options": { "versions": { "yotech-ai/twill-plugin-support": "1.0.0" } }
-        }
-    ]
+    "prefer-stable": true
 }

@@ -12,6 +12,7 @@ use TwillSeo\Analysis\Html\HtmlParser;
 use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Contracts\SeoContentResolver;
 use TwillSeo\Http\Controllers\AssetController;
+use TwillSeo\PluginPage\TwillPluginServiceProvider;
 use TwillSeo\Services\KeyphraseUsage;
 use TwillSeo\Services\Meta\SeoResolver;
 use TwillSeo\Services\ModelRegistry;
@@ -19,7 +20,6 @@ use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
 use TwillSeo\Services\Resolvers\UrlResolver;
 use TwillSeo\Services\Settings\SeoSettings;
 use TwillSeo\Support\TranslatorMessageRenderer;
-use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
 
 /**
  * Drop-in service provider for the Twill SEO suite. Registering this provider

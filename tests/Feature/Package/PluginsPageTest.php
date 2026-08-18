@@ -1,7 +1,7 @@
 <?php
 
+use TwillSeo\PluginPage\TwillPluginServiceProvider;
 use TwillSeo\TwillSeoServiceProvider;
-use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
 
 it('registers our manifest on the shared Plugins registry', function () {
     $registry = app(TwillPluginServiceProvider::REGISTRY_BINDING);
