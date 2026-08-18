@@ -1,5 +1,6 @@
 <?php
 
+use A17\Twill\Services\Forms\BladePartial;
 use Illuminate\Support\Collection;
 use TwillSeo\Services\Form\SeoFields;
 use TwillSeo\Tests\Fixtures\Models\Article;
@@ -39,12 +40,14 @@ it('exposes stored seo values through getFormFields after a save', function () {
         ->and($fields['seo_noindex'])->toBeTrue();
 });
 
-it('builds the full fieldset with every seo_* field name', function () {
+it('builds the full fieldset with every seo_* field name, plus the analysis panel first', function () {
     $fieldset = SeoFields::fieldset();
 
     expect($fieldset->id)->toBe('seo')
         ->and($fieldset->title)->toBe(__('SEO'))
         ->and($fieldset->open)->toBeFalse();
+
+    expect($fieldset->fields->first())->toBeInstanceOf(BladePartial::class);
 
     $expected = [
         'seo_keyphrase',
@@ -65,16 +68,47 @@ it('builds the full fieldset with every seo_* field name', function () {
     ];
     sort($expected);
 
-    expect(($this->fieldNames)($fieldset->fields))->toBe($expected);
+    // The BladePartial itself has no `name` property to reflect (it isn't a
+    // BaseFormField), so the reflection-based field-name check runs over
+    // everything after it.
+    expect(($this->fieldNames)($fieldset->fields->skip(1)->values()))->toBe($expected);
 });
 
 it('trims the fieldset to only the core trio without social or advanced fields', function () {
-    $fieldset = SeoFields::fieldset(social: false, advanced: false);
+    $fieldset = SeoFields::fieldset(analysis: false, social: false, advanced: false);
 
     $expected = ['seo_description', 'seo_keyphrase', 'seo_title'];
     sort($expected);
 
     expect(($this->fieldNames)($fieldset->fields))->toBe($expected);
+});
+
+it('includes the analysis panel as the first fieldset item by default', function () {
+    $fieldset = SeoFields::fieldset();
+
+    expect($fieldset->fields->first())->toBeInstanceOf(BladePartial::class);
+});
+
+it('omits the analysis panel when $analysis is false', function () {
+    $fieldset = SeoFields::fieldset(analysis: false);
+
+    expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->toBeEmpty();
+});
+
+it('omits the analysis panel when the analysis feature is disabled, even with $analysis true', function () {
+    config(['twill-seo.features.analysis' => false]);
+
+    $fieldset = SeoFields::fieldset();
+
+    expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->toBeEmpty();
+});
+
+it('exposes analysisPanel() and sideChip() as their own BladePartials', function () {
+    $panel = SeoFields::analysisPanel();
+    $chip = SeoFields::sideChip();
+
+    expect($panel)->toBeInstanceOf(BladePartial::class)
+        ->and($chip)->toBeInstanceOf(BladePartial::class);
 });
 
 it('registers the og image media role on the fixture article without losing the default crops', function () {

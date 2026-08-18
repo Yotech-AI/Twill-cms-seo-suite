@@ -2,6 +2,7 @@
 
 namespace TwillSeo\Services\Form;
 
+use A17\Twill\Services\Forms\BladePartial;
 use A17\Twill\Services\Forms\Fields\Checkbox;
 use A17\Twill\Services\Forms\Fields\Input;
 use A17\Twill\Services\Forms\Fields\Medias;
@@ -25,21 +26,29 @@ class SeoFields
     private const OG_IMAGE_ROLE = 'twill_seo_og_image';
 
     /**
-     * $social/$advanced let a host trim the fieldset down to just the
-     * always-on keyphrase/title/description trio. No $analysis parameter
-     * yet: a later task prepends the score/readability panel ahead of these
-     * fields once the analysis engine exists.
+     * $analysis prepends the Vue editor panel (Task 6) as the fieldset's
+     * first item, ahead of the plain seo_* inputs below it, whenever the
+     * analysis feature is switched on globally; $social/$advanced let a host
+     * trim the rest of the fieldset down to just the always-on keyphrase/
+     * title/description trio.
      */
-    public static function fieldset(bool $social = true, bool $advanced = true): Fieldset
+    public static function fieldset(bool $analysis = true, bool $social = true, bool $advanced = true): Fieldset
     {
-        $fields = [
+        $fields = [];
+
+        if ($analysis && config('twill-seo.features.analysis')) {
+            $fields[] = self::analysisPanel();
+        }
+
+        array_push(
+            $fields,
             Input::make()->name('seo_keyphrase')->label(__('Focus keyphrase'))->translatable()
                 ->note(__('The main term or phrase you want this page to rank for.')),
             Input::make()->name('seo_title')->label(__('SEO title'))->translatable()
                 ->maxLength(70)->note(__('Leave empty to use the title template.')),
             Input::make()->name('seo_description')->label(__('Meta description'))->translatable()
                 ->type('textarea')->rows(3)->maxLength(170),
-        ];
+        );
 
         if ($advanced) {
             array_push(
@@ -63,5 +72,28 @@ class SeoFields
         }
 
         return Fieldset::make()->id('seo')->title(__('SEO'))->closed()->fields($fields);
+    }
+
+    /**
+     * The Task 6 Vue editor panel — a BladePartial rather than a typed field,
+     * since only the surrounding form (via View::shared('form'), the exact
+     * seam BladePartial::render() reads) knows which $item is being edited;
+     * this factory itself never receives one. Deliberately no per-item logic
+     * here: that lives entirely in resources/views/form/analysis-panel.blade.php,
+     * which runs at render time rather than at fieldset-assembly time.
+     */
+    public static function analysisPanel(): BladePartial
+    {
+        return BladePartial::make()->view('twill-seo::form.analysis-panel');
+    }
+
+    /**
+     * A compact, server-rendered (no JS) per-locale score summary for a
+     * host's own sidebar or summary UI — not wired into fieldset() itself,
+     * since where (or whether) a host wants this is its own call.
+     */
+    public static function sideChip(): BladePartial
+    {
+        return BladePartial::make()->view('twill-seo::form.score-chip');
     }
 }
