@@ -5,8 +5,12 @@ namespace TwillSeo\Tests\Unit\Analysis\Support;
 use TwillSeo\Analysis\Context\AnalysisContext;
 use TwillSeo\Analysis\Html\HtmlParser;
 use TwillSeo\Analysis\Language\DefaultLanguagePack;
+use TwillSeo\Analysis\Language\FleschFormula;
 use TwillSeo\Analysis\Language\LanguagePack;
+use TwillSeo\Analysis\Language\PassiveVoiceDetector;
 use TwillSeo\Analysis\Language\SentenceTokenizer;
+use TwillSeo\Analysis\Language\SyllableCounter;
+use TwillSeo\Analysis\Language\TransitionWords;
 use TwillSeo\Analysis\Language\WordList;
 use TwillSeo\Analysis\Language\WordTokenizer;
 use TwillSeo\Analysis\Messages\ArrayMessageRenderer;
@@ -90,7 +94,10 @@ final class AnalysisFactory
                 return $this->words;
             }
 
-            public function transitionWords(): ?object
+            // A pack with no readability data of its own: the tests that need
+            // the real thing use EnglishLanguagePack, and the ones that need a
+            // pack without a capability need exactly this.
+            public function transitionWords(): ?TransitionWords
             {
                 return null;
             }
@@ -100,17 +107,17 @@ final class AnalysisFactory
                 return null;
             }
 
-            public function passiveVoice(): ?object
+            public function passiveVoice(): ?PassiveVoiceDetector
             {
                 return null;
             }
 
-            public function syllableCounter(): ?object
+            public function syllableCounter(): ?SyllableCounter
             {
                 return null;
             }
 
-            public function fleschFormula(): ?object
+            public function fleschFormula(): ?FleschFormula
             {
                 return null;
             }

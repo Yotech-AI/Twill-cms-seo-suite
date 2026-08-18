@@ -2,6 +2,8 @@
 
 namespace TwillSeo\Analysis\Language;
 
+use TwillSeo\Analysis\Language\En\EnglishLanguagePack;
+
 /**
  * Resolves a paper's locale to the pack that analyses it. Locales arrive in
  * every spelling a CMS uses (nl, nl_NL, nl-NL, NL) and all of them mean the
@@ -13,6 +15,22 @@ final class LanguagePackRegistry
     private array $packs = [];
 
     public function __construct(private readonly LanguagePack $default = new DefaultLanguagePack) {}
+
+    /**
+     * The registry a host gets when it does not build one itself: every
+     * language pack this package ships, with the generic pack behind them.
+     *
+     * A bare `new LanguagePackRegistry` stays empty on purpose — it is what a
+     * test uses to see how the engine behaves for a language it knows nothing
+     * about.
+     */
+    public static function withDefaults(): self
+    {
+        $registry = new self;
+        $registry->register(new EnglishLanguagePack);
+
+        return $registry;
+    }
 
     public function register(LanguagePack $pack): void
     {

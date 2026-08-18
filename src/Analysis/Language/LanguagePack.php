@@ -8,8 +8,8 @@ namespace TwillSeo\Analysis\Language;
  * The nullable capabilities are the ones a language either has data for or
  * does not: a pack without a syllable counter simply cannot produce a Flesch
  * score, and the assessment that needs it declares itself inapplicable rather
- * than guessing. They are typed as ?object until the classes behind them land
- * with the real language packs.
+ * than guessing. Null is therefore a real answer here, not an oversight — the
+ * generic pack returns it for all five.
  */
 interface LanguagePack
 {
@@ -23,15 +23,15 @@ interface LanguagePack
     /** May be empty, in which case keyphrase matching uses every word. */
     public function functionWords(): WordList;
 
-    public function transitionWords(): ?object;
+    public function transitionWords(): ?TransitionWords;
 
     public function firstWordExceptions(): ?WordList;
 
-    public function passiveVoice(): ?object;
+    public function passiveVoice(): ?PassiveVoiceDetector;
 
-    public function syllableCounter(): ?object;
+    public function syllableCounter(): ?SyllableCounter;
 
-    public function fleschFormula(): ?object;
+    public function fleschFormula(): ?FleschFormula;
 
     /** Words above which a sentence counts as too long. */
     public function sentenceLengthLimit(): int;

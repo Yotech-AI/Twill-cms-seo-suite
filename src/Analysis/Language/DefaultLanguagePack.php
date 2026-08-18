@@ -43,7 +43,7 @@ final readonly class DefaultLanguagePack implements LanguagePack
         return WordList::empty();
     }
 
-    public function transitionWords(): ?object
+    public function transitionWords(): ?TransitionWords
     {
         return null;
     }
@@ -53,17 +53,17 @@ final readonly class DefaultLanguagePack implements LanguagePack
         return null;
     }
 
-    public function passiveVoice(): ?object
+    public function passiveVoice(): ?PassiveVoiceDetector
     {
         return null;
     }
 
-    public function syllableCounter(): ?object
+    public function syllableCounter(): ?SyllableCounter
     {
         return null;
     }
 
-    public function fleschFormula(): ?object
+    public function fleschFormula(): ?FleschFormula
     {
         return null;
     }
