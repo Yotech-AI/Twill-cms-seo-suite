@@ -43,6 +43,21 @@ function reportOf(Paper $paper, ?AnalysisOptions $options = null): array
     return runner()->analyze($paper, $options)->jsonSerialize();
 }
 
+/**
+ * One SEO result out of a report by its identifier.
+ *
+ * @return array<string,mixed>
+ */
+function collectResult(array $report, string $identifier): array
+{
+    $results = array_values(array_filter(
+        $report['seo']['results'],
+        fn (array $result) => $result['id'] === $identifier,
+    ));
+
+    return $results[0] ?? [];
+}
+
 it('reports the frozen top level shape', function () {
     expect(array_keys(reportOf(fixturePaper())))
         ->toBe(['locale', 'languageSupported', 'seo', 'readability', 'insights']);
@@ -65,24 +80,64 @@ it('reports each result in the frozen result shape', function () {
 it('keeps the results in assessor registration order', function () {
     $report = reportOf(fixturePaper());
 
+    // The fixture paper has no keyphrase, so the assessments that need one are
+    // left out; the ones that remain are in registration order.
     expect(array_column($report['seo']['results'], 'id'))->toBe([
+        'keyphraseLength',
         'metaDescriptionLength',
-        'textLength',
+        'subheadingsKeyword',
+        'imageKeyphrase',
         'images',
-        'singleH1',
-        'titleWidth',
-        'internalLinks',
+        'textLength',
         'externalLinks',
+        'keyphraseInSEOTitle',
+        'internalLinks',
+        'titleWidth',
+        'slugKeyword',
+        'singleH1',
     ]);
 });
 
 it('aggregates the seo section into a score and a rating', function () {
     $report = reportOf(fixturePaper());
 
-    // 9 - 20 + 9 + 8 + 9 + 9 + 9 = 33 of a possible 63.
-    expect(array_column($report['seo']['results'], 'score'))->toBe([9, -20, 9, 8, 9, 9, 9])
-        ->and($report['seo']['score'])->toBe(52)
-        ->and($report['seo']['rating'])->toBe('ok');
+    // The missing keyphrase vetoes the section with -999, which no amount of
+    // green elsewhere can pull back above the floor of 1.
+    expect(array_column($report['seo']['results'], 'score'))->toBe([-999, 9, 1, 3, 9, -20, 9, 2, 9, 9, 3, 8])
+        ->and($report['seo']['score'])->toBe(1)
+        ->and($report['seo']['rating'])->toBe('bad');
+});
+
+it('runs the keyphrase assessments once a paper has a keyphrase', function () {
+    $report = reportOf(Paper::builder()
+        ->text('<h1>Green tea</h1><p>Brewing green tea is simple once you know the water temperature.</p>')
+        ->keyword('green tea')
+        ->title('Brewing green tea: the short guide')
+        ->description(str_repeat('a', 130))
+        ->slug('brewing-green-tea')
+        ->build());
+
+    // Everything except the two that stay quiet on a healthy paper: the
+    // keyphrase is not all function words, and no host answered the
+    // "used elsewhere" question.
+    expect(array_column($report['seo']['results'], 'id'))->toBe([
+        'introductionKeyword',
+        'keyphraseLength',
+        'keywordDensity',
+        'metaDescriptionKeyword',
+        'metaDescriptionLength',
+        'subheadingsKeyword',
+        'textCompetingLinks',
+        'imageKeyphrase',
+        'images',
+        'textLength',
+        'externalLinks',
+        'keyphraseInSEOTitle',
+        'internalLinks',
+        'titleWidth',
+        'slugKeyword',
+        'singleH1',
+    ]);
 });
 
 it('reports readability as not available until it has assessments', function () {
@@ -142,19 +197,31 @@ it('rounds reading time up to whole minutes and never to zero', function (int $w
 it('holds cornerstone content to the higher text length bar', function () {
     $paper = fixturePaper();
 
-    $normal = reportOf($paper);
-    $cornerstone = reportOf($paper, new AnalysisOptions(cornerstone: true));
+    // Found by id rather than by position: the registration order is pinned by
+    // its own test, and this one is about the thresholds.
+    $textLength = fn (array $report) => collectResult($report, 'textLength');
 
-    expect($normal['seo']['results'][1]['messageKey'])->toBe('twill-seo::analysis.text_length.far_too_short')
-        ->and($normal['seo']['results'][1]['params'])->toBe(['words' => 13, 'recommended' => 300])
-        ->and($cornerstone['seo']['results'][1]['params'])->toBe(['words' => 13, 'recommended' => 900]);
+    $normal = $textLength(reportOf($paper));
+    $cornerstone = $textLength(reportOf($paper, new AnalysisOptions(cornerstone: true)));
+
+    expect($normal['messageKey'])->toBe('twill-seo::analysis.text_length.far_too_short')
+        ->and($normal['params'])->toBe(['words' => 13, 'recommended' => 300])
+        ->and($cornerstone['params'])->toBe(['words' => 13, 'recommended' => 900]);
 });
 
 it('leaves out the assessments that have nothing to say about a paper', function () {
     $paper = Paper::builder()->title('A title')->description('A description')->build();
 
-    expect(array_column(reportOf($paper)['seo']['results'], 'id'))
-        ->toBe(['metaDescriptionLength', 'textLength', 'titleWidth']);
+    expect(array_column(reportOf($paper)['seo']['results'], 'id'))->toBe([
+        'keyphraseLength',
+        'metaDescriptionLength',
+        'subheadingsKeyword',
+        'imageKeyphrase',
+        'textLength',
+        'keyphraseInSEOTitle',
+        'titleWidth',
+        'slugKeyword',
+    ]);
 });
 
 it('returns an empty section when a section is switched off', function () {

@@ -10,6 +10,7 @@ use TwillSeo\Analysis\Html\ParsedContent;
 use TwillSeo\Analysis\Language\LanguagePack;
 use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Analysis\Research\Research;
+use TwillSeo\Analysis\Research\Support\KeyphraseMatcher;
 
 /**
  * One analysis run. Everything an assessment is allowed to see, plus the
@@ -27,6 +28,8 @@ final class AnalysisContext
     /** @var array<class-string,mixed> */
     private array $researchResults = [];
 
+    private ?KeyphraseMatcher $keyphraseMatcher = null;
+
     public function __construct(
         public readonly Paper $paper,
         public readonly ParsedContent $content,
@@ -34,6 +37,18 @@ final class AnalysisContext
         public readonly MessageRenderer $messages,
         public readonly KeyphraseUsageProvider $keyphraseUsage,
     ) {}
+
+    /**
+     * The one matcher every keyphrase assessment uses.
+     *
+     * Built from the language pack's own tokenizer, so a language that splits
+     * words differently matches keyphrases by its own rules — and built here
+     * once, so eight assessments cannot each decide that for themselves.
+     */
+    public function keyphraseMatcher(): KeyphraseMatcher
+    {
+        return $this->keyphraseMatcher ??= new KeyphraseMatcher($this->language->wordTokenizer());
+    }
 
     /**
      * @template TResult
@@ -72,9 +87,19 @@ final class AnalysisContext
         );
     }
 
-    /** metaDescriptionLength => meta_description_length */
+    /**
+     * metaDescriptionLength => meta_description_length, and an acronym stays
+     * whole: keyphraseInSEOTitle => keyphrase_in_seo_title rather than
+     * keyphrase_in_s_e_o_title.
+     */
     private static function messageGroup(string $identifier): string
     {
-        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $identifier));
+        $snake = preg_replace(
+            ['/([a-z\d])([A-Z])/', '/([A-Z]+)([A-Z][a-z])/'],
+            '$1_$2',
+            $identifier,
+        );
+
+        return strtolower((string) $snake);
     }
 }

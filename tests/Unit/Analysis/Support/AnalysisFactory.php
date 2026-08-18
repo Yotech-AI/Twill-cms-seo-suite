@@ -3,6 +3,7 @@
 namespace TwillSeo\Tests\Unit\Analysis\Support;
 
 use TwillSeo\Analysis\Context\AnalysisContext;
+use TwillSeo\Analysis\Contracts\KeyphraseUsageProvider;
 use TwillSeo\Analysis\Html\HtmlParser;
 use TwillSeo\Analysis\Language\DefaultLanguagePack;
 use TwillSeo\Analysis\Language\FleschFormula;
@@ -26,14 +27,19 @@ use TwillSeo\Analysis\Support\NullKeyphraseUsageProvider;
  */
 final class AnalysisFactory
 {
-    public static function context(Paper $paper, ?LanguagePack $language = null): AnalysisContext
-    {
+    public static function context(
+        Paper $paper,
+        ?LanguagePack $language = null,
+        ?KeyphraseUsageProvider $usage = null,
+    ): AnalysisContext {
         return new AnalysisContext(
             $paper,
             (new HtmlParser)->parse($paper->text, $paper->permalink),
             $language ?? new DefaultLanguagePack,
             new ArrayMessageRenderer,
-            new NullKeyphraseUsageProvider,
+            // The null provider by default, because that is what a host that
+            // wired nothing up gets.
+            $usage ?? new NullKeyphraseUsageProvider,
         );
     }
 
