@@ -1,0 +1,427 @@
+/*
+ * Every class in this file is tss- prefixed to stay collision-free inside
+ * Twill's own admin page. Custom properties are scoped to .tss-panel and
+ * .tss-placeholder/.tss-side-chip (not :root) so they never leak into the
+ * rest of the host admin page. No rule here uses z-index >= 400 — the panel
+ * is an inline block in the form, never an overlay, so it never needs to
+ * compete with Twill's own modals (which is the ceiling the brief asks to
+ * stay under).
+ */
+
+.tss-panel,
+.tss-placeholder,
+.tss-side-chip {
+    --tss-red: #dc3232;
+    --tss-orange: #ee7c1b;
+    --tss-green: #7ad03a;
+    --tss-grey: #b0b0b0;
+    --tss-accent: #3b82c4;
+    --tss-border: #e1e4e8;
+    --tss-radius: 4px;
+    --tss-text: #2a2f34;
+    --tss-text-muted: #6b7280;
+    --tss-bg: #ffffff;
+    --tss-bg-muted: #f7f8f9;
+}
+
+.tss-panel {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--tss-text);
+    background: var(--tss-bg);
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    padding: 16px;
+}
+
+.tss-panel *,
+.tss-panel *::before,
+.tss-panel *::after {
+    box-sizing: inherit;
+}
+
+.tss-panel--loading {
+    position: relative;
+}
+
+.tss-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tss-panel__reanalyze {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tss-accent);
+    background: transparent;
+    border: 1px solid var(--tss-accent);
+    border-radius: var(--tss-radius);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.tss-panel__reanalyze:hover:not(:disabled) {
+    background: var(--tss-accent);
+    color: #fff;
+}
+
+.tss-panel__reanalyze:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* ---- Score chips ---- */
+
+.tss-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.tss-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tss-chip__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+}
+
+.tss-chip__label {
+    font-weight: 600;
+}
+
+/* ---- Banners ---- */
+
+.tss-banner {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border-radius: var(--tss-radius);
+    font-size: 12px;
+    background: var(--tss-bg-muted);
+    color: var(--tss-text-muted);
+    border: 1px solid var(--tss-border);
+}
+
+.tss-banner--stale {
+    color: #8a5a00;
+    background: #fff8e6;
+    border-color: #f0d998;
+}
+
+/* ---- Error state ---- */
+
+.tss-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border-radius: var(--tss-radius);
+    font-size: 12px;
+    background: #fdf1f1;
+    color: #8a1f1f;
+    border: 1px solid #f3c8c8;
+}
+
+.tss-error__retry {
+    font: inherit;
+    font-weight: 600;
+    color: inherit;
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: var(--tss-radius);
+    padding: 3px 8px;
+    cursor: pointer;
+    flex: none;
+}
+
+/* ---- Snippet preview ---- */
+
+.tss-snippet {
+    margin-bottom: 16px;
+}
+
+.tss-snippet__toggle {
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.tss-snippet__toggle-btn {
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--tss-text-muted);
+    background: var(--tss-bg-muted);
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    padding: 3px 9px;
+    cursor: pointer;
+}
+
+.tss-snippet__toggle-btn--active {
+    color: #fff;
+    background: var(--tss-accent);
+    border-color: var(--tss-accent);
+}
+
+.tss-snippet__preview {
+    padding: 12px 14px;
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    background: var(--tss-bg);
+    max-width: 600px;
+}
+
+.tss-snippet--mobile .tss-snippet__preview {
+    max-width: 380px;
+}
+
+.tss-snippet__url {
+    font-size: 12px;
+    color: #006621;
+    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+}
+
+.tss-snippet__sep {
+    margin: 0 4px;
+    color: var(--tss-text-muted);
+}
+
+.tss-snippet__title {
+    color: #1a0dab;
+    font-size: 18px;
+    line-height: 1.3;
+    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+}
+
+.tss-snippet__title--placeholder,
+.tss-snippet__description--placeholder {
+    color: var(--tss-text-muted);
+    font-style: italic;
+}
+
+.tss-snippet__description {
+    font-size: 13px;
+    color: #4d5156;
+    overflow-wrap: anywhere;
+}
+
+/* ---- Analysis results ---- */
+
+.tss-analysis {
+    margin-bottom: 16px;
+}
+
+.tss-analysis__title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tss-text-muted);
+    margin: 0 0 8px;
+}
+
+.tss-group {
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    margin-bottom: 6px;
+    overflow: hidden;
+}
+
+.tss-group__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: inherit;
+    text-align: left;
+    background: var(--tss-bg-muted);
+    border: 0;
+    padding: 7px 10px;
+    cursor: pointer;
+}
+
+.tss-group__dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+}
+
+.tss-group__label {
+    font-weight: 600;
+    flex: 1 1 auto;
+}
+
+.tss-group__count {
+    font-size: 11px;
+    color: var(--tss-text-muted);
+    background: var(--tss-bg);
+    border: 1px solid var(--tss-border);
+    border-radius: 10px;
+    padding: 0 7px;
+    line-height: 16px;
+}
+
+.tss-group__chevron {
+    font-weight: 700;
+    color: var(--tss-text-muted);
+    width: 14px;
+    text-align: center;
+    flex: none;
+}
+
+.tss-group__list {
+    list-style: none;
+    margin: 0;
+    padding: 6px 10px 8px;
+}
+
+/* ---- Result items ---- */
+
+.tss-result {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.tss-result__dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex: none;
+}
+
+.tss-result__text {
+    flex: 1 1 auto;
+}
+
+/* ---- Insights ---- */
+
+.tss-insights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: var(--tss-bg-muted);
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+}
+
+.tss-insights__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tss-insights__value {
+    font-weight: 700;
+}
+
+.tss-insights__label {
+    font-size: 11px;
+    color: var(--tss-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ---- Loading states ---- */
+
+.tss-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.tss-skeleton__bar {
+    height: 12px;
+    border-radius: var(--tss-radius);
+    background: linear-gradient(90deg, var(--tss-bg-muted) 25%, var(--tss-border) 37%, var(--tss-bg-muted) 63%);
+    background-size: 400% 100%;
+    animation: tss-skeleton-shimmer 1.4s ease infinite;
+}
+
+.tss-skeleton__bar--short {
+    width: 60%;
+}
+
+@keyframes tss-skeleton-shimmer {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+.tss-spinner {
+    width: 14px;
+    height: 14px;
+    margin-top: 4px;
+    border: 2px solid var(--tss-border);
+    border-top-color: var(--tss-accent);
+    border-radius: 50%;
+    animation: tss-spin 0.7s linear infinite;
+}
+
+@keyframes tss-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tss-skeleton__bar,
+    .tss-spinner {
+        animation: none;
+    }
+}
+
+/* ---- Server-rendered fallbacks (no JS) ---- */
+
+.tss-placeholder {
+    padding: 10px 12px;
+    border: 1px dashed var(--tss-border);
+    border-radius: var(--tss-radius);
+    background: var(--tss-bg-muted);
+    color: var(--tss-text-muted);
+    font-size: 13px;
+}
+
+.tss-side-chip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--tss-text-muted);
+}
+
+.tss-side-chip__locale {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+}
