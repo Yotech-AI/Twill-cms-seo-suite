@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Support;
+
 use TwillSeo\Analysis\Support\PixelWidthEstimator;
 
 /*

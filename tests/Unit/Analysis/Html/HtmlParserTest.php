@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Html;
+
 use TwillSeo\Analysis\Html\HtmlParser;
 use TwillSeo\Analysis\Html\LinkScope;
 use TwillSeo\Analysis\Html\ParsedContent;
@@ -9,7 +11,7 @@ use TwillSeo\Analysis\Html\ParsedContent;
  * the legacy DOMDocument path would otherwise never be exercised. Every parser
  * expectation therefore runs against both.
  */
-dataset('html backends', [
+dataset('analysis html backends', [
     'modern backend' => [false],
     'legacy backend' => [true],
 ]);
@@ -46,7 +48,7 @@ it('splits paragraphs by container and by double break', function (bool $legacy)
         'Three',
         'breaks still split once',
     ]);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('captures headings with their level in document order', function (bool $legacy) {
     $content = parseFixture('headings', $legacy);
@@ -59,7 +61,7 @@ it('captures headings with their level in document order', function (bool $legac
         [6, 'Deepest'],
     ])->and($content->countHeadingsOfLevel(1))->toBe(2)
         ->and($content->countHeadingsOfLevel(4))->toBe(0);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('tells a missing alt apart from an empty one', function (bool $legacy) {
     $content = parseFixture('images', $legacy);
@@ -69,7 +71,7 @@ it('tells a missing alt apart from an empty one', function (bool $legacy) {
         ['/empty-alt.png', ''],
         ['/with-alt.png', 'A described image'],
     ]);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('classifies link scope and nofollow', function (bool $legacy) {
     $content = parseFixture('links', $legacy);
@@ -84,14 +86,14 @@ it('classifies link scope and nofollow', function (bool $legacy) {
         ['mailto:hi@example.test', LinkScope::Other, false],
         ['tel:+3112345678', LinkScope::Other, false],
     ]);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('keeps the anchor text of every link', function (bool $legacy) {
     $content = parseFixture('links', $legacy);
 
     expect($content->links[0]->anchorText)->toBe('Relative')
         ->and($content->links[3]->anchorText)->toBe('External nofollow');
-})->with('html backends');
+})->with('analysis html backends');
 
 it('reads only internal or only external links when asked', function (bool $legacy) {
     $content = parseFixture('links', $legacy);
@@ -99,27 +101,27 @@ it('reads only internal or only external links when asked', function (bool $lega
     expect($content->linksInScope(LinkScope::Internal))->toHaveCount(3)
         ->and($content->linksInScope(LinkScope::External))->toHaveCount(2)
         ->and($content->linksInScope(LinkScope::Other))->toHaveCount(3);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('treats every link as external when the paper has no permalink', function (bool $legacy) {
     $content = (new HtmlParser($legacy))->parse(htmlFixture('links'), '');
 
     expect($content->links[1]->scope)->toBe(LinkScope::External)
         ->and($content->links[0]->scope)->toBe(LinkScope::Internal);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('drops script, style, embedded markup and code from the text', function (bool $legacy) {
     $content = parseFixture('excluded', $legacy);
 
     expect($content->plainText)->toBe('Visible text. Code sample: Still visible.');
-})->with('html backends');
+})->with('analysis html backends');
 
 it('recovers paragraphs from an unclosed fragment', function (bool $legacy) {
     $content = parseFixture('broken', $legacy);
 
     expect(array_map(fn ($p) => $p->text, $content->paragraphs))->toBe(['unclosed', 'text'])
         ->and($content->plainText)->toBe('unclosed text');
-})->with('html backends');
+})->with('analysis html backends');
 
 it('keeps multibyte characters and decodes entities', function (bool $legacy) {
     $content = parseFixture('utf8', $legacy);
@@ -128,7 +130,7 @@ it('keeps multibyte characters and decodes entities', function (bool $legacy) {
         'Café münchen straße — naïve 🚀 déjà vu',
         'Café & co — ok',
     ])->and($content->plainText)->toBe('Café münchen straße — naïve 🚀 déjà vu Café & co — ok');
-})->with('html backends');
+})->with('analysis html backends');
 
 it('recovers what it can from hostile markup instead of throwing', function (bool $legacy) {
     // Both parsers swallow the never-closed tag and its garbage attributes,
@@ -138,7 +140,7 @@ it('recovers what it can from hostile markup instead of throwing', function (boo
     expect($content->plainText)->toBe('<<<>>>')
         ->and(array_map(fn ($p) => $p->text, $content->paragraphs))->toBe(['<<<>>>'])
         ->and($content->links)->toBe([]);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('returns empty content for an empty fragment', function (bool $legacy) {
     $content = (new HtmlParser($legacy))->parse('', 'https://example.test/x');
@@ -148,7 +150,7 @@ it('returns empty content for an empty fragment', function (bool $legacy) {
         ->and($content->headings)->toBe([])
         ->and($content->images)->toBe([])
         ->and($content->links)->toBe([]);
-})->with('html backends');
+})->with('analysis html backends');
 
 it('parses every fixture identically on both backends', function (string $fixture) {
     $modern = (new HtmlParser(false))->parse(htmlFixture($fixture), FIXTURE_PERMALINK);

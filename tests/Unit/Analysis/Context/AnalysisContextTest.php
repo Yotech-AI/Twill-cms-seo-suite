@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Context;
+
 use TwillSeo\Analysis\Assessment\Assessment;
 use TwillSeo\Analysis\Assessment\AssessmentResult;
 use TwillSeo\Analysis\Context\AnalysisContext;

@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Assessment;
+
 use TwillSeo\Analysis\Assessment\Rating;
 use TwillSeo\Analysis\Assessment\ResultCategory;
 

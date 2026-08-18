@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Language;
+
 use TwillSeo\Analysis\Language\WordTokenizer;
 
 it('extracts words', function (string $text, array $expected) {

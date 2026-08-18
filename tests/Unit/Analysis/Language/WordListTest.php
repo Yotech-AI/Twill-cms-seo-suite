@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Language;
+
 use TwillSeo\Analysis\Language\WordList;
 
 it('matches membership without regard to case', function () {

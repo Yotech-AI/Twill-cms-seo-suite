@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Assessment\Seo;
+
 use TwillSeo\Analysis\Assessment\AssessmentResult;
 use TwillSeo\Analysis\Assessment\Seo\InternalLinksAssessment;
 use TwillSeo\Analysis\Paper\Paper;

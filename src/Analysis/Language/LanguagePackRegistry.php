@@ -25,9 +25,13 @@ final class LanguagePackRegistry
     }
 
     /**
-     * The language subtag, lowercased. Paper::languageCode() applies the same
-     * rule to its own locale; the two are kept independent so a Paper stays a
-     * plain input object with no dependency on the language layer.
+     * The language subtag, lowercased. Public because AnalysisRunner reports
+     * the key a pack was looked up under rather than deriving the locale a
+     * second time — the report and the pack that produced it must agree.
+     *
+     * Paper::languageCode() applies the same rule to its own locale; the two
+     * are kept independent so a Paper stays a plain input object with no
+     * dependency on the language layer, and PaperTest pins them together.
      */
     public static function languageCode(string $locale): string
     {

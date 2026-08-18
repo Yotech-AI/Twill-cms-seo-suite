@@ -1,5 +1,9 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Paper;
+
+use DateTimeImmutable;
+use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Analysis\Paper\Paper;
 
 it('reduces a locale to its language subtag', function (string $locale, string $expected) {
@@ -10,10 +14,18 @@ it('reduces a locale to its language subtag', function (string $locale, string $
     'hyphen region' => ['de-DE', 'de'],
     'uppercase' => ['NL', 'nl'],
     'script and region' => ['zh-Hant-TW', 'zh'],
-    // A paper with no locale is still analysable; English is the safe guess.
-    'nothing at all' => ['', 'en'],
-    'whitespace only' => ['   ', 'en'],
+    // No locale means no language, not English. Guessing here would make the
+    // report claim a language the pack registry never resolved.
+    'nothing at all' => ['', ''],
+    'whitespace only' => ['   ', ''],
 ]);
+
+it('derives exactly the same language code as the pack registry', function (string $locale) {
+    // These two derivations decide different things — what the report says the
+    // language is, and which pack analyses it — so they must never disagree.
+    expect(Paper::builder()->locale($locale)->build()->languageCode())
+        ->toBe(LanguagePackRegistry::languageCode($locale));
+})->with(['en', 'en_GB', 'nl_NL', 'de-DE', 'NL', 'zh-Hant-TW', '', '   ', '_', 'x']);
 
 it('knows which of its fields are filled in', function () {
     $empty = Paper::builder()->build();

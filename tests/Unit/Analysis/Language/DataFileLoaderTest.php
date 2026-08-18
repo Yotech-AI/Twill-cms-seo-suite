@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Language;
+
 use TwillSeo\Analysis\Language\Data\DataFileLoader;
 
 it('loads an array from a php file', function () {

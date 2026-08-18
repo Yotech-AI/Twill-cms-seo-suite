@@ -35,14 +35,19 @@ final class AnalysisFactory
 
     /**
      * A pack that behaves like the default one but knows some function words,
-     * which the default pack deliberately does not.
+     * which the default pack deliberately does not, and can claim a real
+     * language code and full readability support the way Task 4's packs will.
      *
      * @param  list<string>  $functionWords
      * @param  list<string>  $abbreviations
      */
-    public static function languagePack(array $functionWords = [], array $abbreviations = []): LanguagePack
-    {
-        return new class($functionWords, $abbreviations) implements LanguagePack
+    public static function languagePack(
+        array $functionWords = [],
+        array $abbreviations = [],
+        string $code = 'test',
+        bool $supportsFullReadability = false,
+    ): LanguagePack {
+        return new class($functionWords, $abbreviations, $code, $supportsFullReadability) implements LanguagePack
         {
             private readonly WordList $words;
 
@@ -54,8 +59,12 @@ final class AnalysisFactory
              * @param  list<string>  $functionWords
              * @param  list<string>  $abbreviations
              */
-            public function __construct(array $functionWords, array $abbreviations)
-            {
+            public function __construct(
+                array $functionWords,
+                array $abbreviations,
+                private readonly string $languageCode,
+                private readonly bool $fullReadability,
+            ) {
                 $this->words = WordList::fromArray($functionWords);
                 $this->sentences = new SentenceTokenizer($abbreviations);
                 $this->tokenizer = new WordTokenizer;
@@ -63,7 +72,7 @@ final class AnalysisFactory
 
             public function code(): string
             {
-                return 'test';
+                return $this->languageCode;
             }
 
             public function sentenceTokenizer(): SentenceTokenizer
@@ -113,7 +122,7 @@ final class AnalysisFactory
 
             public function supportsFullReadability(): bool
             {
-                return false;
+                return $this->fullReadability;
             }
         };
     }

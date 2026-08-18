@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Report;
+
 use TwillSeo\Analysis\AnalysisOptions;
 use TwillSeo\Analysis\AnalysisRunner;
 use TwillSeo\Analysis\Assessor\AssessorFactory;
@@ -8,6 +10,7 @@ use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Analysis\Messages\ArrayMessageRenderer;
 use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Analysis\Report\AnalysisReport;
+use TwillSeo\Tests\Unit\Analysis\Support\AnalysisFactory;
 
 function runner(): AnalysisRunner
 {
@@ -103,6 +106,26 @@ it('reduces the locale to its language and reports whether it is supported', fun
         // Only the generic pack is registered so far; the real packs flip this.
         ->and($report['languageSupported'])->toBeFalse();
 });
+
+it('reports the locale it actually resolved the language pack with', function (string $locale, string $reported, bool $supported) {
+    // The regression this guards: a paper with no locale reporting "en" while
+    // the fallback pack analysed it, which stays invisible until a real en
+    // pack exists and then silently disagrees with the report.
+    $registry = new LanguagePackRegistry;
+    $registry->register(AnalysisFactory::languagePack(code: 'en', supportsFullReadability: true));
+
+    $runner = new AnalysisRunner(new HtmlParser, $registry, new AssessorFactory, new ArrayMessageRenderer);
+    $report = $runner->analyze(Paper::builder()->locale($locale)->build());
+
+    expect($report->locale)->toBe($reported)
+        ->and($report->languageSupported)->toBe($supported);
+})->with([
+    'a registered language' => ['en_GB', 'en', true],
+    'the same language, hyphenated' => ['en-US', 'en', true],
+    'an unregistered language' => ['nl_NL', 'nl', false],
+    'no locale at all' => ['', '', false],
+    'whitespace only' => ['   ', '', false],
+]);
 
 it('rounds reading time up to whole minutes and never to zero', function (int $words, int $minutes) {
     $text = $words === 0 ? '' : '<p>'.implode(' ', array_fill(0, $words, 'word')).'</p>';

@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Score;
+
 use TwillSeo\Analysis\Assessment\AssessmentResult;
 use TwillSeo\Analysis\Score\OverallRating;
 use TwillSeo\Analysis\Score\SeoScoreAggregator;

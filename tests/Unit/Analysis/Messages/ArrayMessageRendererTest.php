@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Messages;
+
 use TwillSeo\Analysis\Messages\ArrayMessageRenderer;
 
 it('renders a namespaced key from the package language file', function () {

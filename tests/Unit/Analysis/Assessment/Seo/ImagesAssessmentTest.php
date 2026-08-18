@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Assessment\Seo;
+
 use TwillSeo\Analysis\Assessment\Seo\ImagesAssessment;
 use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Tests\Unit\Analysis\Support\AnalysisFactory;

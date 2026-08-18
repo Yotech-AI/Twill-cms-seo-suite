@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Language;
+
 use TwillSeo\Analysis\Language\DefaultLanguagePack;
 use TwillSeo\Analysis\Language\LanguagePackRegistry;
 

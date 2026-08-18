@@ -45,10 +45,16 @@ final readonly class Paper
     /**
      * The language subtag: nl_NL and nl-NL are both Dutch. Kept here rather
      * than taken from the language layer so a Paper depends on nothing.
+     *
+     * A paper with no locale gets an empty code rather than a guess at
+     * English. LanguagePackRegistry::languageCode() has to derive exactly the
+     * same string from the same locale — a paper reported as English but
+     * analysed with the fallback pack is worse than one reported as unknown,
+     * and PaperTest pins the two derivations together.
      */
     public function languageCode(): string
     {
-        return strtolower(strtok(trim($this->locale), '_-') ?: 'en');
+        return strtolower(strtok(trim($this->locale), '_-') ?: '');
     }
 
     public function hasText(): bool

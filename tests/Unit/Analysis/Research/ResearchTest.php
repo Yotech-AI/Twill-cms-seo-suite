@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Research;
+
 use TwillSeo\Analysis\Paper\Paper;
 use TwillSeo\Analysis\Research\EstimatedTitleWidth;
 use TwillSeo\Analysis\Research\LinkStatistics;

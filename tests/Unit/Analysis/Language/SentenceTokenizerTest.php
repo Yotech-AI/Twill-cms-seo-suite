@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Language;
+
 use TwillSeo\Analysis\Language\SentenceTokenizer;
 
 it('splits text into sentences', function (string $text, array $expected) {

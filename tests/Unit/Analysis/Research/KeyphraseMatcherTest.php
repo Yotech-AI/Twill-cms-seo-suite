@@ -1,5 +1,7 @@
 <?php
 
+namespace TwillSeo\Tests\Unit\Analysis\Research;
+
 use TwillSeo\Analysis\Language\DefaultLanguagePack;
 use TwillSeo\Analysis\Language\LanguagePack;
 use TwillSeo\Analysis\Research\Support\KeyphraseMatcher;

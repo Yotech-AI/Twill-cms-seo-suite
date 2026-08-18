@@ -39,6 +39,12 @@ final class AnalysisRunner
     public function analyze(Paper $paper, ?AnalysisOptions $options = null): AnalysisReport
     {
         $options ??= new AnalysisOptions;
+
+        // The reported locale is the very key the pack was looked up under,
+        // not a second derivation of it: a report claiming "en" while the
+        // fallback pack actually ran would be a quiet lie the moment a real
+        // en pack is registered.
+        $languageCode = LanguagePackRegistry::languageCode($paper->locale);
         $language = $this->languages->forLocale($paper->locale);
 
         $context = new AnalysisContext(
@@ -52,7 +58,7 @@ final class AnalysisRunner
         );
 
         return new AnalysisReport(
-            $paper->languageCode(),
+            $languageCode,
             $language->supportsFullReadability(),
             $options->seo
                 ? ScoreSection::fromAssessorResult($this->assessors->seo($options->cornerstone)->run($context))
