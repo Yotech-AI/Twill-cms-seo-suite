@@ -5,6 +5,15 @@ namespace TwillSeo;
 use A17\Twill\Facades\TwillNavigation;
 use A17\Twill\View\Components\Navigation\NavigationLink;
 use Illuminate\Support\Facades\Route;
+use TwillSeo\Analysis\AnalysisRunner;
+use TwillSeo\Analysis\Assessor\AssessorFactory;
+use TwillSeo\Analysis\Html\HtmlParser;
+use TwillSeo\Analysis\Language\LanguagePackRegistry;
+use TwillSeo\Contracts\SeoContentResolver;
+use TwillSeo\Services\KeyphraseUsage;
+use TwillSeo\Services\ModelRegistry;
+use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
+use TwillSeo\Support\TranslatorMessageRenderer;
 use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
 
 /**
@@ -30,12 +39,39 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
 
         $this->mergeConfigFrom(__DIR__.'/../config/twill-seo.php', 'twill-seo');
 
+        $this->registerAnalysisServices();
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\DoctorCommand::class,
                 Console\InstallCommand::class,
             ]);
         }
+    }
+
+    /**
+     * Bindings only — no side effects, so they exist even when the package
+     * is disabled (config('twill-seo.enabled') only gates boot()'s routes,
+     * views, migrations and navigation).
+     */
+    protected function registerAnalysisServices(): void
+    {
+        $this->app->singleton(ModelRegistry::class);
+
+        // The default resolver for any registry entry with no `content`
+        // class of its own; RenderedBlocksResolver's own ModelRegistry
+        // dependency resolves through the singleton just bound above.
+        $this->app->bind(SeoContentResolver::class, RenderedBlocksResolver::class);
+
+        $this->app->singleton(AnalysisRunner::class, function ($app) {
+            return new AnalysisRunner(
+                new HtmlParser,
+                LanguagePackRegistry::withDefaults(),
+                new AssessorFactory,
+                $app->make(TranslatorMessageRenderer::class),
+                $app->make(KeyphraseUsage::class),
+            );
+        });
     }
 
     public function boot(): void
@@ -53,6 +89,7 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         }
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'twill-seo');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'twill-seo');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();

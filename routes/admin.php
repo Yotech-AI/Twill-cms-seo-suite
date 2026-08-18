@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use TwillSeo\Http\Controllers\AnalyzeController;
 use TwillSeo\Http\Controllers\SettingsPageController;
 
 /*
@@ -16,3 +17,7 @@ use TwillSeo\Http\Controllers\SettingsPageController;
 */
 
 Route::get('/', [SettingsPageController::class, 'index'])->name('index');
+
+Route::post('/analyze', AnalyzeController::class)
+    ->name('analyze')
+    ->middleware('throttle:'.config('twill-seo.analysis.throttle', '60,1'));
