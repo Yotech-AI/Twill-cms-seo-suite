@@ -2,7 +2,9 @@
 
 namespace TwillSeo\Repositories\Behaviors;
 
+use Throwable;
 use TwillSeo\Models\SeoEntry;
+use TwillSeo\Services\ScoreCache;
 
 /**
  * Wires the package's seo_* form fields into Twill's save pipeline via the
@@ -74,46 +76,58 @@ trait HandleSeo
 
     public function afterSaveHandleSeo(object $object, array $fields): void
     {
-        if ($this->stashedSeoFields === []) {
-            return;
-        }
+        // Was an early return: `if ($this->stashedSeoFields === []) return;`.
+        // Inverted into this if-block instead, because the ScoreCache refresh
+        // below has to run even when nothing was stashed — a publish toggle
+        // or any other save that never touches a seo_* field still changes
+        // what "the saved analysis" means (a newly-published page's scores
+        // are now visible on the listing) and must still refresh them.
+        if ($this->stashedSeoFields !== []) {
+            /** @var SeoEntry $entry */
+            $entry = $object->seoEntry()->firstOrCreate();
 
-        /** @var SeoEntry $entry */
-        $entry = $object->seoEntry()->firstOrCreate();
-
-        foreach (self::FLAT_FIELDS as $formField => $column) {
-            if (array_key_exists($formField, $this->stashedSeoFields)) {
-                $entry->{$column} = (bool) $this->stashedSeoFields[$formField];
-            }
-        }
-
-        if ($entry->isDirty()) {
-            $entry->save();
-        }
-
-        foreach (self::TRANSLATED_FIELDS as $formField => $column) {
-            if (! array_key_exists($formField, $this->stashedSeoFields)) {
-                continue;
+            foreach (self::FLAT_FIELDS as $formField => $column) {
+                if (array_key_exists($formField, $this->stashedSeoFields)) {
+                    $entry->{$column} = (bool) $this->stashedSeoFields[$formField];
+                }
             }
 
-            $value = $this->stashedSeoFields[$formField];
-
-            // Untranslated host contexts (e.g. the Page fixture) post a
-            // plain string rather than a locale-keyed array.
-            $perLocale = is_array($value) ? $value : [app()->getLocale() => $value];
-
-            foreach ($perLocale as $locale => $localeValue) {
-                $entry->translationOrNew($locale)->{$column} = $this->trimToNull($localeValue);
+            if ($entry->isDirty()) {
+                $entry->save();
             }
+
+            foreach (self::TRANSLATED_FIELDS as $formField => $column) {
+                if (! array_key_exists($formField, $this->stashedSeoFields)) {
+                    continue;
+                }
+
+                $value = $this->stashedSeoFields[$formField];
+
+                // Untranslated host contexts (e.g. the Page fixture) post a
+                // plain string rather than a locale-keyed array.
+                $perLocale = is_array($value) ? $value : [app()->getLocale() => $value];
+
+                foreach ($perLocale as $locale => $localeValue) {
+                    $entry->translationOrNew($locale)->{$column} = $this->trimToNull($localeValue);
+                }
+            }
+
+            foreach ($entry->translations as $translation) {
+                if ($translation->isDirty()) {
+                    $translation->save();
+                }
+            }
+
+            $this->stashedSeoFields = [];
         }
 
-        foreach ($entry->translations as $translation) {
-            if ($translation->isDirty()) {
-                $translation->save();
-            }
+        // Analysis failure must never fail a content save: nothing past this
+        // point is allowed to escape and take the save down with it.
+        try {
+            app(ScoreCache::class)->refresh($object);
+        } catch (Throwable $e) {
+            report($e);
         }
-
-        $this->stashedSeoFields = [];
     }
 
     public function getFormFieldsHandleSeo(object $object, array $fields): array

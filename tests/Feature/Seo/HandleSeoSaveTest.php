@@ -54,13 +54,35 @@ it('creates a seo entry with mapped translations and flat booleans on create', f
         ->and($nl->focus_keyphrase)->toBeNull();
 });
 
-it('never creates a seo entry when a save never touches any seo_* field', function () {
-    // The brief is explicit: afterSaveHandleSeo returns immediately when
-    // nothing was stashed. Without that guard, firstOrCreate() would still
-    // seed an empty SeoEntry row for every plain save a host ever makes.
-    $this->articles->create(['title' => ['en' => 'A', 'nl' => 'A']]);
+it('stashes no seo_* persistence when a save never touches any seo_* field', function () {
+    // Superseded by Task 5: this used to assert NO SeoEntry was created at
+    // all (afterSaveHandleSeo returned before firstOrCreate() ever ran). Task
+    // 5's ScoreCache now runs unconditionally at the end of
+    // afterSaveHandleSeo — even a save with no seo_* keys still needs a
+    // cached score, or a never-touched page would show a permanently grey
+    // "not analyzed" listing dot instead of the real (if red) score it
+    // deserves — and per ScoreCache's own contract it creates the entry and
+    // its translation rows when absent. What Task 2 actually guarded against
+    // — the seo_* PERSISTENCE block (flat columns, translated columns) never
+    // running for fields nobody posted — still holds: this asserts THAT.
+    $article = $this->articles->create(['title' => ['en' => 'A', 'nl' => 'A']]);
 
-    expect(SeoEntry::query()->count())->toBe(0);
+    $entry = SeoEntry::query()->where('seoable_id', $article->id)->first();
+
+    expect($entry)->not->toBeNull()
+        // Never touched by the save, so the flat columns keep their
+        // migration defaults rather than gaining stashed values.
+        ->and($entry->robots_noindex)->toBeFalse()
+        ->and($entry->robots_nofollow)->toBeFalse()
+        ->and($entry->cornerstone)->toBeFalse();
+
+    // Nor did the seo_* TRANSLATED persistence run — every translation's
+    // own seo_* columns (as opposed to ScoreCache's score columns) stay
+    // null, exactly as an untouched save should leave them.
+    foreach ($entry->translations as $translation) {
+        expect($translation->seo_title)->toBeNull()
+            ->and($translation->focus_keyphrase)->toBeNull();
+    }
 });
 
 it('leaves stored seo data untouched when an update posts no seo_* keys', function () {
