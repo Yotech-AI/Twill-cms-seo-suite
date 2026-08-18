@@ -23,35 +23,8 @@ class SchemaGraphTestCustomPiece implements GraphPiece
     }
 }
 
-/**
- * Renders the head component (see tests/Pest.php's renderHeadHtml()) and
- * decodes the single <script type="application/ld+json"> it emits — null
- * when the schema feature is off and no script tag was rendered at all.
- */
-function renderJsonLd(string $attributes = '', array $data = []): ?array
-{
-    $html = renderHeadHtml($attributes, $data);
-
-    if (! preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m)) {
-        return null;
-    }
-
-    return json_decode($m[1], associative: true, flags: JSON_THROW_ON_ERROR);
-}
-
-/**
- * @return ?array<string,mixed>
- */
-function nodeOfType(?array $graph, string $type): ?array
-{
-    foreach ($graph['@graph'] ?? [] as $node) {
-        if (($node['@type'] ?? null) === $type) {
-            return $node;
-        }
-    }
-
-    return null;
-}
+// renderJsonLd() and nodeOfType() are shared with HeadRenderTest.php — see
+// tests/Pest.php.
 
 beforeEach(function () {
     $this->articles = new ArticleRepository(new Article);

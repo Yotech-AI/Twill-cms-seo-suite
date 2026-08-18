@@ -31,8 +31,8 @@
 @if ($seo->ogDescription !== null)
 <meta property="og:description" content="{{ $seo->ogDescription }}">
 @endif
-@if ($seo->url !== null)
-<meta property="og:url" content="{{ $seo->url }}">
+@if ($seo->canonicalUrl !== null)
+<meta property="og:url" content="{{ $seo->canonicalUrl }}">
 @endif
 <meta property="og:site_name" content="{{ $siteName }}">
 @if ($seo->ogImage !== null)

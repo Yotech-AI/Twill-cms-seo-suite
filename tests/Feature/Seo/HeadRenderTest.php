@@ -109,17 +109,22 @@ it('always emits robots meta, flipped by the noindex/nofollow flags', function (
         ->toBe('noindex, nofollow, max-snippet:-1, max-image-preview:large, max-video-preview:-1');
 });
 
-it('falls the canonical link back to the resolved URL, but an explicit canonical_url wins', function () {
+it('falls the canonical link back to the resolved URL, but an explicit canonical_url wins — and og:url always matches canonical, not the raw resolved URL', function () {
     $withoutOverride = $this->articles->create(['title' => ['en' => 'A']]);
     $html = renderHeadHtml(':model="$article"', ['article' => $withoutOverride->fresh()]);
-    expect(linkHref($html, 'canonical'))->toBe('https://example.test/en/articles/'.$withoutOverride->id);
+    expect(linkHref($html, 'canonical'))->toBe('https://example.test/en/articles/'.$withoutOverride->id)
+        ->and(metaContent($html, 'property', 'og:url'))->toBe('https://example.test/en/articles/'.$withoutOverride->id);
 
     $withOverride = $this->articles->create([
         'title' => ['en' => 'B'],
         'seo_canonical_url' => ['en' => 'https://example.test/custom-canonical'],
     ]);
     $html = renderHeadHtml(':model="$article"', ['article' => $withOverride->fresh()]);
-    expect(linkHref($html, 'canonical'))->toBe('https://example.test/custom-canonical');
+    // og:url must follow the canonical override, not the raw resolved URL
+    // (https://example.test/en/articles/{id}), which is what it would still
+    // show if it read PageSeo::url instead of PageSeo::canonicalUrl.
+    expect(linkHref($html, 'canonical'))->toBe('https://example.test/custom-canonical')
+        ->and(metaContent($html, 'property', 'og:url'))->toBe('https://example.test/custom-canonical');
 });
 
 it('omits hreflang tags when the feature is off even though multiple locales would resolve', function () {
@@ -189,6 +194,35 @@ it('switches og:type to article and adds article:published_time/modified_time fo
         ->toBe($article->created_at->format(DATE_ATOM))
         ->and(metaContent($html, 'property', 'article:modified_time'))
         ->toBe($article->fresh()->updated_at->format(DATE_ATOM));
+});
+
+it('flips og:type, adds article: meta tags, and adds the Article JSON-LD node when the Head component $type override makes the page Article-ish', function () {
+    // Fix round (review finding #1): PageSeo::withOverrides() used to copy
+    // ogType verbatim instead of recomputing it from the overridden schema
+    // type, so <x-twill-seo::head :model="$item" type="Article" /> silently
+    // did nothing to og:type, the article: tags, or the Article schema node
+    // — even though the same override DID correctly update PageSeo::schemaType
+    // (and JSON-LD's Article node's own @type). This is the Head component's
+    // $type constructor param specifically, NOT SeoManager::page(schemaType:
+    // ...), which derives ogType at construction and was never affected.
+
+    // Default registry schema_type is 'WebPage' (ModelRegistry::DEFAULTS), so
+    // without the override this page is not Article-ish at all.
+    $article = $this->articles->create(['title' => ['en' => 'A']]);
+
+    $html = renderHeadHtml(':model="$article"', ['article' => $article->fresh()]);
+    expect(metaContent($html, 'property', 'og:type'))->toBe('website')
+        ->and($html)->not->toContain('article:published_time');
+
+    $htmlOverridden = renderHeadHtml(':model="$article" type="Article"', ['article' => $article->fresh()]);
+    expect(metaContent($htmlOverridden, 'property', 'og:type'))->toBe('article')
+        ->and(metaContent($htmlOverridden, 'property', 'article:published_time'))->not->toBeNull();
+
+    $graph = renderJsonLd(':model="$article" type="Article"', ['article' => $article->fresh()]);
+    expect(nodeOfType($graph, 'Article'))->not->toBeNull();
+    // The WebPage node stays present too — Article is an ADDITIONAL node,
+    // never a replacement (see WebPagePiece's own doc comment).
+    expect(nodeOfType($graph, 'WebPage'))->not->toBeNull();
 });
 
 it('omits every og: tag when the og feature is off', function () {

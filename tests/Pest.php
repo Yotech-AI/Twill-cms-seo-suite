@@ -70,6 +70,39 @@ function titleTagContent(string $html): ?string
 }
 
 /**
+ * Renders the head component (see renderHeadHtml() above) and decodes the
+ * single <script type="application/ld+json"> it emits — null when the
+ * schema feature is off and no script tag was rendered at all. Shared by
+ * HeadRenderTest (which needs it for the $type-override fix-round test —
+ * the same render must be checked for both its meta tags and its JSON-LD)
+ * and SchemaGraphTest.
+ */
+function renderJsonLd(string $attributes = '', array $data = []): ?array
+{
+    $html = renderHeadHtml($attributes, $data);
+
+    if (! preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m)) {
+        return null;
+    }
+
+    return json_decode($m[1], associative: true, flags: JSON_THROW_ON_ERROR);
+}
+
+/**
+ * @return ?array<string,mixed>
+ */
+function nodeOfType(?array $graph, string $type): ?array
+{
+    foreach ($graph['@graph'] ?? [] as $node) {
+        if (($node['@type'] ?? null) === $type) {
+            return $node;
+        }
+    }
+
+    return null;
+}
+
+/**
  * Attaches a real Twill Media row to $model under $role/crop "default" — the
  * exact shape HasMedias::imageAsArray() reads (uuid/width/height on Media,
  * role/crop/crop_* on the mediables pivot). 'metadatas' is NOT NULL on the

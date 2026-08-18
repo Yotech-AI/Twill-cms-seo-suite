@@ -105,7 +105,7 @@ final class SeoResolver
             ogTitle: $ogTitle,
             ogDescription: $ogDescription,
             ogImage: $ogImage,
-            ogType: $this->isArticleType($schemaType) ? 'article' : 'website',
+            ogType: PageSeo::isArticleType($schemaType) ? 'article' : 'website',
             ogLocale: $this->ogLocale($locale),
             twitterTitle: $twitterTitle,
             twitterDescription: $twitterDescription,
@@ -174,7 +174,7 @@ final class SeoResolver
             ogTitle: $resolvedTitle,
             ogDescription: $resolvedDescription,
             ogImage: $ogImage,
-            ogType: $this->isArticleType($schemaType) ? 'article' : 'website',
+            ogType: PageSeo::isArticleType($schemaType) ? 'article' : 'website',
             ogLocale: $this->ogLocale(app()->getLocale()),
             twitterTitle: $twitterTitle,
             twitterDescription: $twitterDescription,
@@ -350,13 +350,6 @@ final class SeoResolver
             [__('Home'), (string) config('app.url')],
             [$currentTitle !== '' ? $currentTitle : __('Page'), null],
         ];
-    }
-
-    private function isArticleType(string $schemaType): bool
-    {
-        return $schemaType === 'Article'
-            || str_ends_with($schemaType, 'Article')
-            || str_ends_with($schemaType, 'Posting');
     }
 
     /**

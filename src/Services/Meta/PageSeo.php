@@ -73,6 +73,24 @@ final readonly class PageSeo
     }
 
     /**
+     * Whether a schema.org type is Article or one of its subtypes
+     * (NewsArticle, BlogPosting, TechArticle, ...) — the single
+     * implementation of that pattern match. SeoResolver::forModel()/
+     * forPage() call this to derive PageSeo::ogType from PageSeo::schemaType
+     * in the first place, and withOverrides() calls it again to keep
+     * ogType consistent when a $type override changes schemaType after the
+     * fact. Kept here (not on SeoResolver, where it originally lived) so
+     * both call sites can share one implementation without PageSeo having to
+     * depend on SeoResolver to reach it.
+     */
+    public static function isArticleType(string $schemaType): bool
+    {
+        return $schemaType === 'Article'
+            || str_ends_with($schemaType, 'Article')
+            || str_ends_with($schemaType, 'Posting');
+    }
+
+    /**
      * A copy with title/description/schemaType swapped for the Head
      * component's own $title/$description/$type constructor overrides —
      * applied AFTER the full resolver cascade, on top of it, never threaded
@@ -81,6 +99,15 @@ final readonly class PageSeo
      * own independent, already-resolved value), matching the brief's own
      * "hard overrides applied on top of the resolved PageSeo" wording rather
      * than inventing a broader cascade this class was never asked for.
+     *
+     * ogType IS recomputed from the (possibly overridden) schema type,
+     * though — unlike ogTitle/ogDescription it is not independently
+     * resolved data of its own, it is a pure function of schemaType, and
+     * og:type/the article: meta tags/ArticlePiece's own gate all read
+     * ogType rather than schemaType directly. Leaving it copied verbatim
+     * from $this would make a `$type="Article"` override silently do
+     * nothing everywhere that matters.
+     *
      * All-null is the common case (no overrides given) and returns $this
      * unchanged rather than an equal-but-distinct clone.
      */
@@ -89,6 +116,8 @@ final readonly class PageSeo
         if ($title === null && $description === null && $schemaType === null) {
             return $this;
         }
+
+        $resolvedSchemaType = $schemaType ?? $this->schemaType;
 
         return new self(
             title: $title ?? $this->title,
@@ -99,14 +128,14 @@ final readonly class PageSeo
             ogTitle: $this->ogTitle,
             ogDescription: $this->ogDescription,
             ogImage: $this->ogImage,
-            ogType: $this->ogType,
+            ogType: self::isArticleType($resolvedSchemaType) ? 'article' : 'website',
             ogLocale: $this->ogLocale,
             twitterTitle: $this->twitterTitle,
             twitterDescription: $this->twitterDescription,
             alternates: $this->alternates,
             publishedTime: $this->publishedTime,
             modifiedTime: $this->modifiedTime,
-            schemaType: $schemaType ?? $this->schemaType,
+            schemaType: $resolvedSchemaType,
             registryKey: $this->registryKey,
             model: $this->model,
             breadcrumbs: $this->breadcrumbs,

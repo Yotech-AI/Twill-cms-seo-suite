@@ -10,9 +10,10 @@ use TwillSeo\Services\Schema\SchemaIds;
  * An extra node alongside WebPagePiece's, contributed only for an
  * Article-ish schema type. Reuses PageSeo::ogType ('article' vs 'website')
  * as its gate rather than re-deriving the Article-ish pattern match itself —
- * SeoResolver already made that exact decision once (see its isArticleType()),
- * and re-implementing the same string check here would risk the two quietly
- * drifting apart.
+ * PageSeo::isArticleType() already made that exact decision (both when
+ * SeoResolver first resolves ogType and again if a Head component $type
+ * override changes it — see PageSeo::withOverrides()), and re-implementing
+ * the same string check here would risk the two quietly drifting apart.
  */
 final class ArticlePiece implements GraphPiece
 {
