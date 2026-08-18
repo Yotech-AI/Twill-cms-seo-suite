@@ -57,6 +57,15 @@ const displayReadabilityScore = computed(
     () => report.value?.readability?.score ?? initialForLocale.value?.readability_score ?? null
 );
 
+// The engine's own OverallRating string ('not-available'|'bad'|'ok'|'good')
+// for each section, straight from the live report — never re-derived from
+// the score number. Only ever null before the first live response of this
+// page load has arrived (a cached `initial` score has no rating stored
+// alongside it — see ScoreChips.vue's colorForSection() for how that case
+// still lands on the right color anyway).
+const displaySeoRating = computed(() => report.value?.seo?.rating ?? null);
+const displayReadabilityRating = computed(() => report.value?.readability?.rating ?? null);
+
 function signatureOf(fields) {
     try {
         return JSON.stringify(fields || {});
@@ -257,7 +266,13 @@ onBeforeUnmount(() => {
 <template>
     <div class="tss-panel" :class="{ 'tss-panel--loading': loading }">
         <div class="tss-panel__header">
-            <ScoreChips :seo-score="displaySeoScore" :readability-score="displayReadabilityScore" :colors="colors" />
+            <ScoreChips
+                :seo-score="displaySeoScore"
+                :seo-rating="displaySeoRating"
+                :readability-score="displayReadabilityScore"
+                :readability-rating="displayReadabilityRating"
+                :colors="colors"
+            />
             <button type="button" class="tss-panel__reanalyze" :disabled="loading" @click="reanalyze">
                 Re-analyze
             </button>

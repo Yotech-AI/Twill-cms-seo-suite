@@ -56,6 +56,36 @@ it('renders the mount div with a full config for a saved, registered article', f
         ->and($config['initial'])->toHaveKey('nl');
 });
 
+it('passes a cached not-available (0) readability score through the config unmolested, never coerced or hidden', function () {
+    // A title with no body content is the ORDINARY state of a freshly
+    // created item, not a rare edge case — and it is exactly what makes
+    // ReadabilityPenaltyAggregator's <=1-counted-result branch return
+    // OverallScore::notAvailable() (score 0), which ScoreCache::refresh()
+    // then writes verbatim into readability_score. This pins that a real
+    // save really does produce a literal 0 here, and that this Blade layer
+    // passes it through as the bare number 0 rather than papering over it —
+    // the color-safety guarantee itself (0 must render grey, never red) is
+    // enforced downstream in TwillSeo\Support\ScoreRating (pinned in
+    // tests/Unit/Support/ScoreRatingTest.php) and mirrored in
+    // resources/js/panel/colors.js's colorForScore()/colorForSection(),
+    // neither of which a PHP Feature test can reach into.
+    $article = (new ArticleRepository(new Article))->create([
+        'title' => ['en' => 'Just Created, Nothing Written Yet'],
+    ]);
+
+    expect($article->fresh()->seo('en')->readability_score)->toBe(0);
+
+    $html = renderAnalysisPanel($article->fresh());
+    $config = decodeMountConfig($html);
+
+    expect($config['initial']['en']['readability_score'])->toBe(0)
+        // json_decode never turns a bare 0 into null/false/a string — this
+        // is the actual assertion the bug lived downstream of, pinned here
+        // so a future refactor of the config-building @php block cannot
+        // silently reintroduce e.g. `?: null` and hide it again.
+        ->and($config['initial']['en']['readability_score'])->not->toBeNull();
+});
+
 it('shows a neutral placeholder and no mount div for an unsaved model', function () {
     $html = renderAnalysisPanel(new Article);
 

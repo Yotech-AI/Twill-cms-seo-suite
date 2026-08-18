@@ -67,6 +67,11 @@ it('renders the seo score dot with the color and title matching its band', funct
         ->and($html)->toContain('title="'.$title.'"');
 })->with([
     'never analyzed is grey' => [null, '#b0b0b0', 'Not analyzed'],
+    // A cached 0 (OverallScore::notAvailable(), e.g. a title with no body
+    // content — the ordinary state of a freshly created item, not a rare
+    // edge case) must read as the same neutral grey as null, never as the
+    // lowest red band.
+    'not available (cached 0) is grey, not red' => [0, '#b0b0b0', 'Not available'],
     'the bad upper bound is still red' => [40, '#dc3232', '40/100'],
     'just past the bad bound turns orange' => [41, '#ee7c1b', '41/100'],
     'the ok upper bound is still orange' => [70, '#ee7c1b', '70/100'],
@@ -84,6 +89,7 @@ it('renders the readability score dot with the color matching its band, grey whe
     expect($html)->toContain('background:'.$color);
 })->with([
     'never analyzed is grey' => [null, '#b0b0b0'],
+    'not available (cached 0) is grey, not red' => [0, '#b0b0b0'],
     'a bad score is red' => [30, '#dc3232'],
     'an ok score is orange' => [55, '#ee7c1b'],
     'a good score is green' => [85, '#7ad03a'],

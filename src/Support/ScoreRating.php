@@ -10,7 +10,8 @@ namespace TwillSeo\Support;
  *
  * The bounds match SeoScoreAggregator's own bad/ok/good split exactly
  * (<=40, <=70, >70): a dot that disagreed with the score it sits next to
- * would be worse than no dot at all.
+ * would be worse than no dot at all. 0 is deliberately carved out of that
+ * range rather than falling into "<=40" — see color()'s own doc comment.
  */
 final class ScoreRating
 {
@@ -29,20 +30,40 @@ final class ScoreRating
     /**
      * Null is not a bad score — it is the absence of one, and gets its own
      * neutral color rather than reading as a failing grade.
+     *
+     * Neither is 0: it is reserved by the engine for "not available", never a
+     * real verdict. OverallScore::notAvailable() is the ONLY place a 0 is
+     * ever constructed — SeoScoreAggregator floors every real score at 1
+     * specifically so 0 stays unreachable there, and
+     * ReadabilityPenaltyAggregator returns notAvailable() outright whenever
+     * fewer than two assessments counted (a title with no body content is
+     * the ordinary, everyday way to land here — not a rare edge case).
+     * Coloring a 0 red would tell a brand new, not-yet-written page it has
+     * already failed.
      */
     public static function color(?int $score): string
     {
         return match (true) {
-            $score === null => self::COLOR_GREY,
+            $score === null || $score === 0 => self::COLOR_GREY,
             $score <= self::BAD_UPPER_BOUND => self::COLOR_RED,
             $score <= self::OK_UPPER_BOUND => self::COLOR_ORANGE,
             default => self::COLOR_GREEN,
         };
     }
 
+    /**
+     * Null and 0 are both grey (see color()) but are worded differently: null
+     * means the analysis has never run at all, while 0 means it ran and
+     * explicitly had too little to judge — "not available" says that, "not
+     * analyzed" would not.
+     */
     public static function label(?int $score): string
     {
-        return $score === null ? 'Not analyzed' : "{$score}/100";
+        return match (true) {
+            $score === null => 'Not analyzed',
+            $score === 0 => 'Not available',
+            default => "{$score}/100",
+        };
     }
 
     /**
