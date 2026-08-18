@@ -2,7 +2,9 @@
 
 namespace TwillSeo\Tests\Fixtures;
 
+use A17\Twill\Facades\TwillBlocks;
 use Illuminate\Support\ServiceProvider;
+use TwillSeo\Tests\Fixtures\Blocks\FixtureContentBlock;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Models\Page;
 
@@ -15,10 +17,13 @@ use TwillSeo\Tests\Fixtures\Models\Page;
  * mergeConfigFrom() only fills in keys the config doesn't already have, so
  * whatever we set here survives the merge untouched.
  *
- * No fixture blocks exist yet, so nothing else is registered. A later task
- * that tests renderBlocks() will register fixture blocks and their view
- * namespace here, the way the twill-cms-ai-assistent sibling's fixture
- * provider does.
+ * `articles` carries `content_fields => ['description']` so PaperFactory has
+ * real saved-mode content even for a test that never attaches a block.
+ *
+ * Registers FixtureContentBlock as a MANUAL block (component-based, like the
+ * twill-cms-ai-assistent sibling's fixtures) rather than a directory scan, so
+ * it stays inside the test autoloader instead of needing a resource_path()
+ * shadow tree.
  */
 class FixtureServiceProvider extends ServiceProvider
 {
@@ -28,11 +33,19 @@ class FixtureServiceProvider extends ServiceProvider
             'articles' => [
                 'model' => Article::class,
                 'title_attribute' => 'title',
+                'content_fields' => ['description'],
             ],
             'pages' => [
                 'model' => Page::class,
                 'title_attribute' => 'title',
             ],
         ]);
+
+        TwillBlocks::registerManualBlock(FixtureContentBlock::class);
+    }
+
+    public function boot(): void
+    {
+        $this->loadViewsFrom(__DIR__.'/views', 'twill-seo-fixtures');
     }
 }
