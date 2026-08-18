@@ -20,8 +20,14 @@ final class SubheadingsTooLongAssessment implements Assessment
 {
     private const SUBHEADING_LEVELS = [2, 3];
 
-    /** Below this a text is short enough to read straight through. */
-    private const SUBHEADINGS_EXPECTED_FROM = 300;
+    /**
+     * Up to and including this many words, a text is short enough to read
+     * straight through. Note that the keyphrase-in-subheadings assessment
+     * expects subheadings from exactly 300 words while this one does not: the
+     * two published thresholds disagree by one word, and both are implemented
+     * as published rather than quietly reconciled.
+     */
+    private const SHORT_TEXT_UP_TO = 300;
 
     private const MAXIMUM_SECTION_WORDS = 300;
 
@@ -41,7 +47,7 @@ final class SubheadingsTooLongAssessment implements Assessment
     {
         $words = $context->research(WordCount::class);
 
-        if ($words < self::SUBHEADINGS_EXPECTED_FROM) {
+        if ($words <= self::SHORT_TEXT_UP_TO) {
             return $context->result($this, 9, 'short_text', ['words' => $words, 'max' => self::MAXIMUM_SECTION_WORDS]);
         }
 

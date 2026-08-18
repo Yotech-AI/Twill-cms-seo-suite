@@ -43,17 +43,21 @@ it('has no complaint about a text short enough to read in one go', function (arr
 })->with([
     'well under the limit' => [[100]],
     'one word under it' => [[299]],
+    'exactly at it' => [[300]],
     // 297 words of body plus the two one-word headings.
     'split into sections but still short' => [[100, 99, 98]],
 ]);
 
-it('asks a long text for subheadings', function () {
-    $result = assessSections([400]);
+it('asks a long text for subheadings', function (array $sections, int $words) {
+    $result = assessSections($sections);
 
     expect($result->score)->toBe(2)
         ->and($result->messageKey)->toBe('twill-seo::analysis.subheadings_too_long.none')
-        ->and($result->messageParams)->toBe(['words' => 400, 'max' => 300]);
-});
+        ->and($result->messageParams)->toBe(['words' => $words, 'max' => 300]);
+})->with([
+    'one word over the short text limit' => [[301], 301],
+    'a properly long text' => [[400], 400],
+]);
 
 it('scores the longest section of a long text', function (array $sections, int $longest, int $score, string $branch) {
     $result = assessSections($sections);
