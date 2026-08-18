@@ -15,6 +15,7 @@ use TwillSeo\Services\KeyphraseUsage;
 use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
 use TwillSeo\Services\Resolvers\UrlResolver;
+use TwillSeo\Services\Settings\SeoSettings;
 use TwillSeo\Support\TranslatorMessageRenderer;
 use Yotech\TwillPluginSupport\TwillPluginServiceProvider;
 
@@ -64,6 +65,11 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         // shared by PaperFactory, ScoreCache and (Task 7) the head-rendering
         // meta layer — one instance per request is enough.
         $this->app->singleton(UrlResolver::class);
+
+        // Memoizes the twill_seo_settings row for the life of the request
+        // (see its own doc comment) — must be a singleton for that memo to
+        // mean anything.
+        $this->app->singleton(SeoSettings::class);
 
         // The default resolver for any registry entry with no `content`
         // class of its own; RenderedBlocksResolver's own ModelRegistry

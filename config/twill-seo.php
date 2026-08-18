@@ -41,6 +41,21 @@ return [
         'separator' => '-',
     ],
 
+    // Config-level defaults for SeoSettings' "general" group (site identity,
+    // schema.org entity, default social share image) — the admin settings
+    // row (twill_seo_settings.general) overrides these at runtime, same
+    // pattern as 'features' above. site_name itself has no key here: it
+    // falls back to config('app.name') directly, since Laravel already owns
+    // that value.
+    'general' => [
+        'tagline' => '',
+        'entity_type' => 'organization', // 'organization' | 'person'
+        'entity_name' => null, // falls back to the resolved site name
+        'logo_media_id' => null,
+        'default_share_media_id' => null,
+        'social_profiles' => [],
+    ],
+
     'robots' => [
         'default_directives' => ['max-snippet:-1', 'max-image-preview:large', 'max-video-preview:-1'],
     ],
@@ -53,6 +68,9 @@ return [
 
     'schema' => [
         'pieces' => [],
+        'search_action_enabled' => false,
+        // Literal {search_term_string} placeholder, e.g. '/search?q={search_term_string}'.
+        'search_url_template' => null,
     ],
 
     'analysis' => [
