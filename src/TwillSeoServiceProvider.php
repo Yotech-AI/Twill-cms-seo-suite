@@ -4,6 +4,7 @@ namespace TwillSeo;
 
 use A17\Twill\Facades\TwillNavigation;
 use A17\Twill\View\Components\Navigation\NavigationLink;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use TwillSeo\Analysis\AnalysisRunner;
 use TwillSeo\Analysis\Assessor\AssessorFactory;
@@ -12,6 +13,7 @@ use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Contracts\SeoContentResolver;
 use TwillSeo\Http\Controllers\AssetController;
 use TwillSeo\Services\KeyphraseUsage;
+use TwillSeo\Services\Meta\SeoResolver;
 use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\Resolvers\RenderedBlocksResolver;
 use TwillSeo\Services\Resolvers\UrlResolver;
@@ -71,6 +73,15 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         // mean anything.
         $this->app->singleton(SeoSettings::class);
 
+        // Stateless orchestration over the singletons above; SeoManager is
+        // the one that genuinely needs per-request identity (see its own
+        // doc comment), so this is a singleton mainly for consistency and
+        // to avoid rebuilding it once per Head render + once per
+        // TwillSeo::for()/page() call in the same request.
+        $this->app->singleton(SeoResolver::class);
+
+        $this->app->singleton(SeoManager::class);
+
         // The default resolver for any registry entry with no `content`
         // class of its own; RenderedBlocksResolver's own ModelRegistry
         // dependency resolves through the singleton just bound above.
@@ -104,6 +115,10 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'twill-seo');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'twill-seo');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // Fulfils the Task 1 ruling deferred to this task: <x-twill-seo::head />
+        // resolves to TwillSeo\View\Components\Head.
+        Blade::componentNamespace('TwillSeo\\View\\Components', 'twill-seo');
 
         $this->registerRoutes();
         $this->registerNavigation();
