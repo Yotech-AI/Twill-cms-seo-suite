@@ -2,9 +2,11 @@
 
 namespace TwillSeo\Analysis\Html;
 
+use Dom\Element;
 use Dom\HTMLDocument;
 use Dom\Node;
 use DOMDocument;
+use DOMElement;
 use DOMNode;
 use DOMXPath;
 use Throwable;
@@ -144,7 +146,7 @@ final class HtmlParser
      * Every element below $node in document order, skipping subtrees that are
      * not page content.
      *
-     * @return list<DOMNode|Node>
+     * @return list<DOMElement|Element> only elements, so callers may read attributes
      */
     private function collectElements(DOMNode|Node $node): array
     {
@@ -230,7 +232,13 @@ final class HtmlParser
             if ($node->nodeType === XML_ELEMENT_NODE && self::tagName($node) === 'br') {
                 $breaks++;
 
-                if ($breaks === 2) {
+                if ($breaks === 1) {
+                    // A lone break ends a line, not a paragraph — but it is
+                    // still a space, or "one<br>two" reads as one word.
+                    $runs[count($runs) - 1][] = $node;
+                } elseif ($breaks === 2) {
+                    // Only the second break splits; a third or fourth changes
+                    // nothing, since editors emit runs of them freely.
                     $runs[] = [];
                 }
 
@@ -318,7 +326,7 @@ final class HtmlParser
      * The 8.4 DOM returns null for an absent attribute where libxml returns an
      * empty string. Callers get the empty string from both.
      */
-    private static function attribute(DOMNode|Node $element, string $name): string
+    private static function attribute(DOMElement|Element $element, string $name): string
     {
         return (string) ($element->getAttribute($name) ?? '');
     }

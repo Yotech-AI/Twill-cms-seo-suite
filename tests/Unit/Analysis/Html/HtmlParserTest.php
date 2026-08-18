@@ -40,6 +40,11 @@ it('splits paragraphs by container and by double break', function (bool $legacy)
         'Cell one',
         'Cell two',
         'Inline emphasis and strength stay in one paragraph.',
+        // A single break is a line break, not a paragraph break — but it is
+        // still a space between the words on either side of it.
+        'Line one line two',
+        'Three',
+        'breaks still split once',
     ]);
 })->with('html backends');
 
@@ -125,11 +130,14 @@ it('keeps multibyte characters and decodes entities', function (bool $legacy) {
     ])->and($content->plainText)->toBe('Café münchen straße — naïve 🚀 déjà vu Café & co — ok');
 })->with('html backends');
 
-it('never throws on hostile markup', function (bool $legacy) {
+it('recovers what it can from hostile markup instead of throwing', function (bool $legacy) {
+    // Both parsers swallow the never-closed tag and its garbage attributes,
+    // leaving only the stray text before it.
     $content = (new HtmlParser($legacy))->parse('<<<>>> <p unclosed attr= <a href=', 'https://example.test/x');
 
-    expect($content->paragraphs)->toBeArray()
-        ->and($content->plainText)->toBeString();
+    expect($content->plainText)->toBe('<<<>>>')
+        ->and(array_map(fn ($p) => $p->text, $content->paragraphs))->toBe(['<<<>>>'])
+        ->and($content->links)->toBe([]);
 })->with('html backends');
 
 it('returns empty content for an empty fragment', function (bool $legacy) {

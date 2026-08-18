@@ -45,7 +45,13 @@ final class TextNormalizer
 
     public static function collapseWhitespace(string $text): string
     {
-        return trim((string) preg_replace('/\s+/u', ' ', str_replace(self::SPACE_LIKE, ' ', $text)));
+        $spaced = str_replace(self::SPACE_LIKE, ' ', $text);
+
+        // preg_replace returns null on invalid UTF-8, which a CMS carrying
+        // legacy latin-1 rows really does produce. Falling back to the
+        // uncollapsed text keeps the content analysable instead of silently
+        // reporting an empty page.
+        return trim(preg_replace('/\s+/u', ' ', $spaced) ?? $spaced);
     }
 
     /**
