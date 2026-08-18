@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Cache;
 use TwillSeo\Services\Sitemap\SitemapCache;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Models\Page;
+use TwillSeo\Tests\Fixtures\Models\PlainModel;
 use TwillSeo\Tests\Fixtures\Repositories\ArticleRepository;
 use TwillSeo\Tests\Fixtures\Repositories\PageRepository;
 
@@ -105,6 +106,40 @@ it('excludes a disabled type from the sitemap index', function () {
     expect(locsOf($xml))
         ->toContain(url('sitemap-articles-1.xml'))
         ->not->toContain(url('sitemap-pages-1.xml'));
+});
+
+it('never lets a registered type without Twill publish scopes crash the index or its own page', function () {
+    // PlainModel extends bare Illuminate\Database\Eloquent\Model, not
+    // A17\Twill\Models\Model — it has neither scopePublished() nor
+    // scopeVisible(). HasSeo is documented to support exactly this ("any
+    // host Eloquent model, Twill module or not"); SitemapBuilder must
+    // honor that rather than assuming every registered type has Twill's
+    // publish scopes just because it's SEO-registered.
+    config(['twill-seo.models.plain' => [
+        'model' => PlainModel::class,
+        'title_attribute' => 'title',
+        'url' => fn (PlainModel $m, string $l): string => "https://example.test/{$l}/plain/{$m->id}",
+    ]]);
+
+    $this->articles->create(['title' => ['en' => 'A'], 'published' => true]);
+    $plain = PlainModel::create(['title' => 'A plain row']);
+
+    // The index still renders for everyone: the healthy 'articles' type is
+    // present, and 'plain' is present too — with no published()/visible()
+    // to filter by, every row of a scope-less type is eligible by that
+    // axis (nothing to exclude on), so its one row is included rather than
+    // silently dropped. Neither type crashes the shared response.
+    $index = sitemapXml($this->get('/sitemap.xml')->assertOk()->getContent());
+
+    expect(locsOf($index))
+        ->toContain(url('sitemap-articles-1.xml'))
+        ->toContain(url('sitemap-plain-1.xml'));
+
+    // The scope-less type's own page also renders (not a 500) and lists
+    // its row.
+    $plainPage = sitemapXml($this->get('/sitemap-plain-1.xml')->assertOk()->getContent());
+
+    expect(locsOf($plainPage))->toBe(["https://example.test/en/plain/{$plain->id}"]);
 });
 
 it('returns an empty but valid sitemap index when nothing is eligible yet', function () {
@@ -272,19 +307,32 @@ it('serves a cached document without recomputing it, under the documented cache 
 
     // A page must exist (pageCount() >= 1) for the controller to get past its
     // range check at all — once it does, overwriting the cache key directly
-    // proves the controller reads from that literal key rather than always
-    // recomputing, and pins the key naming scheme the brief specifies.
-    Cache::put('twill-seo.sitemap.articles.1', '<urlset><!-- cached sentinel --></urlset>', 3600);
+    // with a document a real render could never produce (this exact <loc>,
+    // since the configured url callback always builds
+    // ".../articles/{id}") proves the controller reads from that literal
+    // key rather than recomputing, and pins the key naming scheme the
+    // brief specifies. The sentinel is a real (if fake) <url> block rather
+    // than an XML comment specifically so it survives simplexml parsing —
+    // SimpleXML does not expose comment text through its normal API.
+    Cache::put(
+        'twill-seo.sitemap.articles.1',
+        '<urlset><url><loc>https://example.test/cached-sentinel-page.xml</loc></url></urlset>',
+        3600,
+    );
 
-    $response = $this->get('/sitemap-articles-1.xml')->assertOk();
+    $pageXml = sitemapXml($this->get('/sitemap-articles-1.xml')->assertOk()->getContent());
 
-    expect($response->getContent())->toContain('cached sentinel');
+    expect(locsOf($pageXml))->toBe(['https://example.test/cached-sentinel-page.xml']);
 
-    Cache::put('twill-seo.sitemap.index', '<sitemapindex><!-- index sentinel --></sitemapindex>', 3600);
+    Cache::put(
+        'twill-seo.sitemap.index',
+        '<sitemapindex><sitemap><loc>https://example.test/cached-sentinel-index.xml</loc></sitemap></sitemapindex>',
+        3600,
+    );
 
-    $indexResponse = $this->get('/sitemap.xml')->assertOk();
+    $indexXml = sitemapXml($this->get('/sitemap.xml')->assertOk()->getContent());
 
-    expect($indexResponse->getContent())->toContain('index sentinel');
+    expect(locsOf($indexXml))->toBe(['https://example.test/cached-sentinel-index.xml']);
 });
 
 it('forgets the type and index cache when an article is saved through the repository, reflecting the new article on re-render', function () {

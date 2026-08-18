@@ -17,7 +17,8 @@ use XMLWriter;
  * SitemapCache wraps both from the controller, so this class is just "given
  * a type/page, produce the document" with no knowledge of caching at all.
  *
- * Eligibility (published() + visible() + not robots_noindex) is decided
+ * Eligibility (published() + visible(), when the model has them — see
+ * eligibleQuery()'s own doc comment — plus not robots_noindex) is decided
  * entirely in the database query (eligibleQuery()); a resolvable URL is a
  * SEPARATE, per-model filter applied while rendering, because UrlResolver
  * can run an arbitrary host callback that no SQL query could express. That
@@ -139,6 +140,14 @@ final class SitemapBuilder
      * single max-updated_at lastmod (the brief's own wording: "the index's
      * per-sitemap lastmod = max updated_at for that type", not per page) —
      * one extra aggregate query per type rather than one per page.
+     *
+     * Each type is rendered inside its own try/catch: one misconfigured
+     * registry entry (a bad `model` class, a query that fails for a reason
+     * eligibleQuery()'s own guards don't cover, ...) must never take down
+     * the shared index response for every OTHER, healthy type. Reported and
+     * skipped, exactly like ScoreCache/SitemapCache's own never-break
+     * guards elsewhere in this package — just applied per loop iteration
+     * here instead of around one call.
      */
     public function renderIndex(): string
     {
@@ -147,27 +156,10 @@ final class SitemapBuilder
         $writer->writeAttribute('xmlns', self::SITEMAP_XMLNS);
 
         foreach (array_keys($this->registry->all()) as $key) {
-            if (! $this->settings->sitemapEnabled($key)) {
-                continue;
-            }
-
-            $pageCount = $this->pageCount($key);
-
-            if ($pageCount < 1) {
-                continue;
-            }
-
-            $lastmod = $this->w3cDate($this->eligibleQuery($key)->max('updated_at'));
-
-            for ($page = 1; $page <= $pageCount; $page++) {
-                $writer->startElement('sitemap');
-                $writer->writeElement('loc', route('twill-seo.sitemap.show', ['type' => $key, 'page' => $page]));
-
-                if ($lastmod !== null) {
-                    $writer->writeElement('lastmod', $lastmod);
-                }
-
-                $writer->endElement(); // sitemap
+            try {
+                $this->writeIndexEntriesForType($writer, $key);
+            } catch (\Throwable $e) {
+                report($e);
             }
         }
 
@@ -176,6 +168,48 @@ final class SitemapBuilder
         return $this->finish($writer);
     }
 
+    private function writeIndexEntriesForType(XMLWriter $writer, string $key): void
+    {
+        if (! $this->settings->sitemapEnabled($key)) {
+            return;
+        }
+
+        $pageCount = $this->pageCount($key);
+
+        if ($pageCount < 1) {
+            return;
+        }
+
+        $lastmod = $this->w3cDate($this->eligibleQuery($key)->max('updated_at'));
+
+        for ($page = 1; $page <= $pageCount; $page++) {
+            $writer->startElement('sitemap');
+            $writer->writeElement('loc', route('twill-seo.sitemap.show', ['type' => $key, 'page' => $page]));
+
+            if ($lastmod !== null) {
+                $writer->writeElement('lastmod', $lastmod);
+            }
+
+            $writer->endElement(); // sitemap
+        }
+    }
+
+    /**
+     * published()/visible() are Twill's own local scopes
+     * (A17\Twill\Models\Model::scopePublished()/scopeVisible()) — NOT part
+     * of HasSeo or of bare Eloquent. HasSeo is explicitly documented to
+     * support "any host Eloquent model, Twill module or not" (see its own
+     * doc comment), so a registered model can legitimately compose HasSeo
+     * directly onto a plain Eloquent model with neither scope. Calling an
+     * undefined local scope raises an uncaught BadMethodCallException from
+     * Eloquent\Builder::__call() — guarded here exactly like the seoEntry
+     * check below, via method_exists() on the model CLASS (scopes are
+     * conventionally named methods on the model, not the builder). A model
+     * without Twill's publish/visibility concept has nothing to filter by
+     * on that axis, so its rows are simply never excluded by it — not
+     * treated as ineligible by default (see SitemapTest's PlainModel
+     * regression test, which documents this choice).
+     */
     private function eligibleQuery(string $key): Builder
     {
         $modelClass = $this->registry->modelClass($key);
@@ -183,7 +217,15 @@ final class SitemapBuilder
         /** @var Model $model */
         $model = new $modelClass;
 
-        $query = $modelClass::query()->published()->visible();
+        $query = $modelClass::query();
+
+        if (method_exists($modelClass, 'scopePublished')) {
+            $query->published();
+        }
+
+        if (method_exists($modelClass, 'scopeVisible')) {
+            $query->visible();
+        }
 
         // Registered models are expected to use HasSeo (the whole package
         // assumes it elsewhere — ScoreCache, SeoResolver), but this guard
