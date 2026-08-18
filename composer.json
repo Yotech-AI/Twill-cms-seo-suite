@@ -1,0 +1,44 @@
+{
+    "name": "yotech-ai/twill-cms-seo-suite",
+    "description": "Yoast-style SEO suite for Twill CMS: content analysis with traffic lights, meta tags, XML sitemaps and schema.org structured data",
+    "keywords": ["twill", "laravel", "cms", "seo", "twill-plugin"],
+    "homepage": "https://github.com/Yotech-AI/twill-cms-seo-suite",
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "ext-dom": "*",
+        "ext-mbstring": "*",
+        "illuminate/support": "^12.0 || ^13.0",
+        "area17/twill": "^3.6",
+        "yotech-ai/twill-plugin-support": "^1.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "laravel/pint": "^1.24"
+    },
+    "autoload": {
+        "psr-4": { "TwillSeo\\": "src" }
+    },
+    "autoload-dev": {
+        "psr-4": { "TwillSeo\\Tests\\": "tests" }
+    },
+    "extra": {
+        "laravel": { "providers": ["TwillSeo\\TwillSeoServiceProvider"] }
+    },
+    "config": {
+        "allow-plugins": { "pestphp/pest-plugin": true }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "name": "twill-plugin-support",
+            "type": "path",
+            "url": "../twill-plugin-support",
+            "options": { "versions": { "yotech-ai/twill-plugin-support": "1.0.0" } }
+        }
+    ]
+}
