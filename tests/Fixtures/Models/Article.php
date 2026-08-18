@@ -7,17 +7,18 @@ use A17\Twill\Models\Behaviors\HasMedias;
 use A17\Twill\Models\Behaviors\HasSlug;
 use A17\Twill\Models\Behaviors\HasTranslation;
 use A17\Twill\Models\Model;
+use TwillSeo\Models\Behaviors\HasSeo;
 
 /**
  * A miniature real Twill module — translatable, sluggable, with blocks and
- * medias — so later tasks can exercise repository and (eventually) SEO-trait
- * behavior without standing up a full host application. Deliberately WITHOUT
- * any SEO trait: those don't exist until a later task adds them.
+ * medias — so later tasks can exercise repository and SEO-trait behavior
+ * without standing up a full host application.
  */
 class Article extends Model
 {
     use HasBlocks;
     use HasMedias;
+    use HasSeo;
     use HasSlug;
     use HasTranslation;
 
