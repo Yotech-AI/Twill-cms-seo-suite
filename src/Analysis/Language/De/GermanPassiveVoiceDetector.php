@@ -67,6 +67,22 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
     /** The prefixes that replace the ge- rather than sit in front of it. */
     private const INSEPARABLE_PREFIXES = ['be', 'ver', 'er', 'ent', 'zer', 'emp', 'miss', 'über', 'unter'];
 
+    /**
+     * The auxiliaries that build the Vorgangspassiv and nothing else a
+     * participle could belong to. Kept apart from the sein forms because the
+     * perfect-only guard below must not fire behind one of these: werden has no
+     * perfect, so there is no perfect reading to suppress.
+     *
+     * A heuristic rather than a data file, for the same reason the guards are:
+     * passive/auxiliaries.php describes the language, this splits that list for
+     * one decision the detector makes.
+     */
+    private const PROCESS_AUXILIARIES = [
+        'werde', 'wirst', 'wird', 'werden', 'werdet', 'wurde', 'wurdest',
+        'wurden', 'wurdet', 'worden', 'geworden', 'würde', 'würdest', 'würden',
+        'würdet',
+    ];
+
     /** A participle never follows one of these; a noun does. */
     private const DETERMINERS = [
         'der', 'die', 'das', 'den', 'dem', 'des',
@@ -104,12 +120,20 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
      * participles — the detector has to recognise them and then decline to
      * count them, which is not the same as pretending they are nouns.
      *
-     * The test each entry had to pass is whether the verb can take an object at
-     * all. "Versinken", "ausfallen" and "eintreffen" cannot, so "das Schiff ist
-     * versunken" and "das Konzert ist ausgefallen" are perfects and not
-     * passives. Verbs that are unaccusative in one reading and transitive in
-     * another ("zerbrechen") are deliberately absent: the transitive passive
-     * they build is real, and a guard is all or nothing.
+     * The guard applies ONLY behind a sein form, never behind a werden form —
+     * see clauseIsPassive(). That is what its name says: it suppresses the
+     * *perfect* reading, and only sein has one. A werden form has no perfect to
+     * be confused with, so "das Problem wurde eskaliert" stays the passive it
+     * is while "die Lage ist eskaliert" stays the perfect it is.
+     *
+     * Being auxiliary-aware is also what lets an ambitransitive verb sit here
+     * at all: the entry costs nothing on the werden side. Verbs whose two
+     * readings are both common behind *sein* ("zerbrechen") are still
+     * deliberately absent, because there the guard would have to choose.
+     *
+     * The test each entry had to pass is whether the verb has a perfect with
+     * sein that would otherwise read as a Zustandspassiv. "Versinken",
+     * "ausfallen" and "eintreffen" do.
      */
     private const PERFECT_ONLY_PARTICIPLES = [
         'gewesen', 'geworden', 'geblieben', 'gekommen', 'angekommen',
@@ -159,26 +183,43 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
     }
 
     /**
+     * Whether one clause is passive, which depends on *which* auxiliary it
+     * carries.
+     *
+     * A werden form only ever builds a passive or a future, and the future is
+     * already ruled out by the participle rule — so any participle in its
+     * clause is a passive, including one of a verb that is usually
+     * intransitive. "Das Problem wurde eskaliert" is a passive; German lets
+     * "ein Ticket eskalieren" take an object, and business copy says so daily.
+     *
+     * A sein form is the ambiguous one: it builds the Zustandspassiv *and* the
+     * perfect of every verb of motion and change. Only there does the
+     * perfect-only guard apply.
+     *
      * @param  list<string>  $tokens
      */
     private function clauseIsPassive(array $tokens): bool
     {
-        $auxiliary = false;
+        $process = false;
+        $state = false;
         $participle = false;
+        $perfectOnly = false;
 
         foreach ($tokens as $index => $token) {
             if ($this->auxiliaries->contains($token)) {
-                $auxiliary = true;
+                in_array($token, self::PROCESS_AUXILIARIES, true) ? $process = true : $state = true;
 
                 continue;
             }
 
-            if (! $participle && $this->isParticiple($token) && ! self::isNounOrAdjectiveHere($tokens, $index)) {
-                $participle = true;
+            if (! $this->isParticiple($token) || self::isNounOrAdjectiveHere($tokens, $index)) {
+                continue;
             }
+
+            in_array($token, self::PERFECT_ONLY_PARTICIPLES, true) ? $perfectOnly = true : $participle = true;
         }
 
-        return $auxiliary && $participle;
+        return ($process && ($participle || $perfectOnly)) || ($state && $participle);
     }
 
     private function isParticiple(string $token): bool
@@ -187,7 +228,7 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
             return false;
         }
 
-        if ($this->nonParticiples->contains($token) || in_array($token, self::PERFECT_ONLY_PARTICIPLES, true)) {
+        if ($this->nonParticiples->contains($token)) {
             return false;
         }
 

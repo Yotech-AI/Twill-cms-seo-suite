@@ -59,8 +59,14 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      * and those behave exactly the same way: "de begroting is goed-ge-keurd",
      * "de kamer werd schoon-ge-maakt". They are safe to list because the rule
      * still demands a ge- and a stem of at least two letters behind the prefix,
-     * so an ordinary compound noun cannot reach it: "goederen", "vrijheid",
-     * "volgend" and "stopcontact" all fail on the part that follows.
+     * so an ordinary compound cannot reach it: "goederen", "vrijheid",
+     * "volgend", "volwassen", "schoonheid" and "stopcontact" all fail on the
+     * part that follows, and each is pinned as a negative in PassiveVoiceTest.
+     *
+     * What does reach it is a prefix in front of a ge- noun or adjective —
+     * "goedgezind", "leeggewicht", "overgewicht" — spelled exactly like a
+     * separable participle and not one. Those go in
+     * passive/non-participles.php, where the ge- nouns already live.
      *
      * "mis" is deliberately absent: it would read "misverstand" as a
      * participle, and "mislukt" — the word it would have bought — never forms
@@ -75,6 +81,18 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
 
     /** The prefixes that replace the ge- rather than sit in front of it. */
     private const INSEPARABLE_PREFIXES = ['be', 'ver', 'ont', 'her', 'er'];
+
+    /**
+     * The auxiliaries that build the worden-passive and nothing else a
+     * participle could belong to. Kept apart from the zijn forms because the
+     * perfect-only guard below must not fire behind one of these: worden has no
+     * perfect, so there is no perfect reading to suppress.
+     *
+     * A heuristic rather than a data file, for the same reason the guards are:
+     * passive/auxiliaries.php describes the language, this splits that list for
+     * one decision the detector makes.
+     */
+    private const PROCESS_AUXILIARIES = ['word', 'wordt', 'worden', 'werd', 'werden', 'geworden'];
 
     /** A participle never follows one of these; a noun does. */
     private const DETERMINERS = [
@@ -106,13 +124,21 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      * participles — the detector has to recognise them and then decline to
      * count them, which is not the same as pretending they are nouns.
      *
-     * The test each entry had to pass is whether the verb can take an object at
-     * all. "Verschijnen", "bezwijken" and "ontgaan" cannot, so "het artikel is
-     * verschenen" is a perfect and not a passive — and "is verschenen" is
-     * everyday publishing copy, exactly the register this package reads. Verbs
-     * that are unaccusative in one reading and transitive in another
-     * ("bevriezen", "verdrinken") are deliberately absent: the transitive
-     * passive they build is real, and a guard is all or nothing.
+     * The guard applies ONLY behind a zijn form, never behind a worden form —
+     * see clauseIsPassive(). That is what its name says: it suppresses the
+     * *perfect* reading, and only zijn has one.
+     *
+     * Being auxiliary-aware is also what lets an ambitransitive verb sit here
+     * at all: the entry costs nothing on the worden side, so "de bladzijde werd
+     * omgeslagen" survives while "het weer is omgeslagen" does not count.
+     * Verbs whose two readings are both common behind *zijn* ("bevriezen",
+     * "verdrinken") are still deliberately absent, because there the guard
+     * would have to choose.
+     *
+     * The test each entry had to pass is whether the verb has a perfect with
+     * zijn that would otherwise read as a state passive. "Verschijnen",
+     * "bezwijken" and "ontgaan" do — and "is verschenen" is everyday publishing
+     * copy, exactly the register this package reads.
      */
     private const PERFECT_ONLY_PARTICIPLES = [
         'geweest', 'gebleven', 'geworden', 'gekomen', 'aangekomen', 'teruggekomen',
@@ -161,26 +187,41 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
     }
 
     /**
+     * Whether one clause is passive, which depends on *which* auxiliary it
+     * carries.
+     *
+     * A worden form only ever builds a passive, so any participle in its clause
+     * is one — including the participle of a verb that is usually intransitive
+     * ("de bladzijde werd omgeslagen", "de winkels werden afgelopen").
+     *
+     * A zijn form is the ambiguous one: it builds the state passive *and* the
+     * perfect of every verb of motion and change. Only there does the
+     * perfect-only guard apply.
+     *
      * @param  list<string>  $tokens
      */
     private function clauseIsPassive(array $tokens): bool
     {
-        $auxiliary = false;
+        $process = false;
+        $state = false;
         $participle = false;
+        $perfectOnly = false;
 
         foreach ($tokens as $index => $token) {
             if ($this->auxiliaries->contains($token)) {
-                $auxiliary = true;
+                in_array($token, self::PROCESS_AUXILIARIES, true) ? $process = true : $state = true;
 
                 continue;
             }
 
-            if (! $participle && $this->isParticiple($token) && ! self::isNounOrAdjectiveHere($tokens, $index)) {
-                $participle = true;
+            if (! $this->isParticiple($token) || self::isNounOrAdjectiveHere($tokens, $index)) {
+                continue;
             }
+
+            in_array($token, self::PERFECT_ONLY_PARTICIPLES, true) ? $perfectOnly = true : $participle = true;
         }
 
-        return $auxiliary && $participle;
+        return ($process && ($participle || $perfectOnly)) || ($state && $participle);
     }
 
     private function isParticiple(string $token): bool
@@ -189,7 +230,7 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
             return false;
         }
 
-        if ($this->nonParticiples->contains($token) || in_array($token, self::PERFECT_ONLY_PARTICIPLES, true)) {
+        if ($this->nonParticiples->contains($token)) {
             return false;
         }
 

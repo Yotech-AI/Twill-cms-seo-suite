@@ -117,14 +117,29 @@ guards rather than in `passive/non-participles.php`, because these words really
 are participles: the detector recognises them and then declines to count them,
 which is not the same as pretending they are nouns.
 
-The test for membership is whether the verb can take an object at all.
-*Verschijnen*, *bezwijken*, *aflopen*, *versinken*, *ausfallen* and *eintreffen*
-cannot, so "het artikel is verschenen" and "das Konzert ist ausgefallen" are
-perfects — and "is verschenen" is everyday publishing copy, exactly the register
-this package reads. Verbs that are unaccusative in one reading and transitive in
-another (*bevriezen*, *verdrinken*, *zerbrechen*) are deliberately **not** in
-the guard: the transitive passive they build is real ("de tegoeden werden
-bevroren", "die Vase wurde zerbrochen"), and a guard is all or nothing.
+**The guard is auxiliary-aware, and has to be.** It exists to suppress the
+*perfect* reading, and only `zijn`/`sein` has a perfect — `worden`/`werden` has
+none. So it applies behind a zijn/sein form and never behind a worden/werden
+one. Without that, the guard reaches past what it is for and kills genuine
+passives: "das Problem wurde eskaliert" is a textbook Vorgangspassiv (German
+lets *ein Ticket eskalieren* take an object, and ITSM copy says so daily), and
+suppressing it because *eskalieren* also has an intransitive perfect would be
+the guard answering a question nobody asked.
+
+The membership test is therefore narrower than "can this verb take an object":
+it is whether the verb has a perfect with zijn/sein that would otherwise read as
+a state passive. *Verschijnen*, *bezwijken*, *aflopen*, *versinken*, *ausfallen*
+and *eintreffen* do, so "het artikel is verschenen" and "das Konzert ist
+ausgefallen" are perfects — and "is verschenen" is everyday publishing copy,
+exactly the register this package reads.
+
+Being auxiliary-aware is also what makes an ambitransitive verb safe to list:
+the entry costs nothing on the worden/werden side, so "de bladzijde werd
+omgeslagen", "de situatie werd verslechterd", "das Auto wurde gefahren" and
+"die Tickets werden eskaliert" all still count. Verbs whose two readings are
+both common behind *zijn*/*sein* (*bevriezen*, *verdrinken*, *zerbrechen*) stay
+out of the guard entirely, because there it would have to choose: "de tegoeden
+zijn bevroren" and "de rivier is bevroren" are the same four words.
 
 Because the guard and `passive/irregular-participles.php` answer opposite
 questions, a word in both is a straight contradiction — one asserting the word
@@ -195,8 +210,13 @@ cost a class of everyday passive, so `goed`, `schoon`, `vrij`, `leeg`, `vol`,
 
 They are safe to add because the rule still demands a `ge-` and a stem of at
 least two letters behind the prefix, so an ordinary compound cannot reach it:
-"goederen", "vrijheid", "volgend" and "stopcontact" all fail on the part that
-follows, and each is pinned as a negative.
+"goederen", "vrijheid", "volgend", "volwassen", "schoonheid" and "stopcontact"
+all fail on the part that follows, and each is pinned as a negative.
+
+What *does* reach it is a prefix in front of a ge- noun or adjective —
+"goedgezind", "leeggewicht", the same shape as the "overgewicht" that was
+already there. Those are spelled exactly like a separable participle and are
+not one, so they join the ge- nouns in `passive/non-participles.php`.
 
 ### Where a prefix only looks separable
 

@@ -53,6 +53,13 @@ it('reads a dutch passive as passive', function (string $sentence) {
     'a separable verb built on schoon' => ['De kamer werd schoongemaakt.'],
     'a separable verb built on vrij' => ['De data zijn vrijgegeven.'],
     'a separable verb built on stop' => ['Het project werd vorig jaar stopgezet.'],
+    'a separable verb built on leeg' => ['De tank werd volledig leeggemaakt.'],
+    'a separable verb built on vol' => ['De cursus is helemaal volgeboekt.'],
+    'a separable verb built on kapot' => ['De ruit werd door de storm kapotgemaakt.'],
+
+    // A worden form has no perfect to be confused with, so a verb that is
+    // usually intransitive still builds a real passive behind it.
+    'an intransitive verb that does take an object' => ['De bladzijde werd langzaam omgeslagen.'],
 
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],
@@ -111,8 +118,15 @@ it('leaves an active or merely descriptive dutch sentence alone', function (stri
     // The adjectival prefixes cannot reach an ordinary compound: what follows
     // them still has to be a ge- plus a stem plus a participle ending.
     'a noun that starts with an adjectival prefix' => ['Er zijn genoeg goederen op voorraad.'],
-    'an adjective that starts with an adjectival prefix' => ['De volgende week is hij vrij.'],
+    'an adjective that starts with an adjectival prefix' => ['Volgend jaar is hij vrij.'],
     'another noun that starts with an adjectival prefix' => ['Het stopcontact is kapot.'],
+    'an abstract noun in heid behind a prefix' => ['De vrijheid van meningsuiting is een groot goed.'],
+    'another abstract noun in heid behind a prefix' => ['Schoonheid is voor iedereen anders.'],
+    'a participle shaped adjective behind vol' => ['Zijn zoon is inmiddels volwassen.'],
+    // The two compounds that really do reach the shape: a prefix plus a ge-
+    // noun or adjective, spelled exactly like a separable participle.
+    'a prefix plus a ge adjective' => ['Concurrenten zijn elkaar zelden goedgezind.'],
+    'a prefix plus a ge noun' => ['Het leeggewicht van de aanhanger is vijfhonderd kilo.'],
 
     'a short word that only looks like a participle' => ['Jij bent de beste van de klas.'],
     'a comparative that starts like a participle' => ['Het huis is best groot.'],

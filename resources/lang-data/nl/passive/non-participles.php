@@ -52,7 +52,11 @@ return [
     'gebied', 'gebit', 'gedicht', 'gelegenheid', 'geluid', 'gerecht',
     'gerechtigheid', 'gezicht', 'gezondheid', 'gewicht',
     'beeld', 'beleid', 'bericht', 'bezit', 'ernst', 'herfst',
-    'verband', 'verstand', 'voorbeeld', 'aangelegenheid', 'overgewicht',
+    'verband', 'verstand', 'voorbeeld', 'aangelegenheid',
+
+    // Compounds of a separable prefix with a ge- noun or adjective. They are
+    // spelled exactly like a separable participle and are not one.
+    'overgewicht', 'leeggewicht', 'goedgezind',
 
     // Bijvoeglijke naamwoorden op -d die nooit een deelwoord waren.
     'gemiddeld', 'gezond',

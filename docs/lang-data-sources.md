@@ -74,7 +74,7 @@ Compiled by the package authors, August 2026.
 | `nl/abbreviations.php` | As above, for Dutch. | 31 | Titles, references, measurements and company forms. Multi-dot forms (`o.a.`, `d.w.z.`, `a.u.b.`) are left out rather than listed inertly: the tokenizer reads the word in front of the terminator, so they could never match, and a list that quietly does nothing invites the next reader to add more of the same. Every entry is a form that is never a Dutch word on its own. |
 | `nl/passive/auxiliaries.php` | The verbs that carry a Dutch passive. | 13 | Forms of *worden* (the deed as it happens) and of *zijn* (the state it left behind). *hebben* is excluded — it marks the perfect. |
 | `nl/passive/irregular-participles.php` | Dutch participles the shape rule cannot derive. | 82 | Three groups: strong participles of the inseparable verbs (`verloren`, `ontvangen`, `begrepen`), which end in -en where the shape rule reserves that ending for ge- words; verbs whose prefix only looks separable (`ondertekend`, `voldaan`, `overwogen`), which take no ge- either; and the -aan participles (`gedaan`, `verstaan`) that no ending in the rule allows. Regular and ge- participles are deliberately absent — the shape rule already derives every one of them. Every entry was checked against one question: can this verb take an object? Those that cannot (`verschenen`, `bezweken`, `ontgaan`) build a perfect and never a passive, so they sit in the detector's guard instead; the ones that are unaccusative in one reading and transitive in another (`bevroren`, `verdronken`) stay here, because the transitive passive they build is real. |
-| `nl/passive/non-participles.php` | Dutch words that look like a participle and are not. | 69 | Four groups: ge-/be-/ver- nouns ending in -d or -t (`gebied`, `geluid`, `beeld`, `voorbeeld`); ge- noun plurals in -en (`gedachten`, `gevolgen`); verb forms that are not participles (`geeft`, `gelden`, `gebeuren`); and the present participles in -end (`verrassend`, `vervelend`, `beslissend`), which Dutch spells exactly like the past participle of a verb whose stem ends in -en (`geopend`, `getekend`) — so the difference cannot be ruled and the common ones are listed. `geleden` is a judgement call: a real participle of *lijden*, but overwhelmingly the word "ago" in web copy. `bekend`, `bereid`, `verbaasd` and `verkeerd` are deliberately absent — see `docs/analysis.md`. |
+| `nl/passive/non-participles.php` | Dutch words that look like a participle and are not. | 71 | Four groups: ge-/be-/ver- nouns ending in -d or -t (`gebied`, `geluid`, `beeld`, `voorbeeld`), including the compounds of a separable prefix with a ge- noun or adjective that are spelled exactly like a separable participle (`overgewicht`, `leeggewicht`, `goedgezind`); ge- noun plurals in -en (`gedachten`, `gevolgen`); verb forms that are not participles (`geeft`, `gelden`, `gebeuren`); and the present participles in -end (`verrassend`, `vervelend`, `beslissend`), which Dutch spells exactly like the past participle of a verb whose stem ends in -en (`geopend`, `getekend`) — so the difference cannot be ruled and the common ones are listed. `geleden` is a judgement call: a real participle of *lijden*, but overwhelmingly the word "ago" in web copy. `bekend`, `bereid`, `verbaasd` and `verkeerd` are deliberately absent — see `docs/analysis.md`. |
 | `nl/syllables.php` | As above, for Dutch. | 21 | Two groups. The first is small, because the counter splits a vowel run wherever Dutch does not spell that pair as one sound and reads the diaeresis as the syllable break Dutch writes it to be; what is left is the opposite case, where `eu` or `ieu` really is one sound everywhere except here (`mu-se-um`, `se-ri-eus`, `in-ge-ni-eur`). The second is the English words Dutch has taken whole and still says the English way (`website`, `online`, `team`, `software`), where no spelling rule can help and which turn up on nearly every page a CMS holds. |
 | `de/function-words.php` | As above, for German. | 435 | The longest list by construction, because German declines almost everything: every article, demonstrative and possessive appears in each case form an author might type, and missing one would leave a keyphrase silently wider than asked for. Also the contracted prepositions (`am`, `im`, `zum`, `zur`, `ins`), every form of *sein*, *haben* and *werden*, and all six modals. Words that double as a plausible subject are excluded — `recht` (Recht auf Auskunft), `halb`, `gleich`, `wert`, `voll`. |
 | `de/transition-words.php` | As above, for German. | 119 | Same eight rhetorical functions as the English list. |
@@ -107,13 +107,16 @@ not have to decide:
   deliberately **not** the subject pronouns the English list includes — both
   languages put the verb second, so the subject regularly follows its own
   auxiliary;
-- the participles that only ever build a perfect and never a passive
-  (`gekomen`, `verschenen`, `afgelopen`; `gefahren`, `versunken`,
-  `ausgefallen`). They are guards rather than data entries because they really
-  are participles: the detector recognises them and then declines to count them,
-  which is not the same as pretending they are nouns. The test for membership is
-  whether the verb can take an object at all, and a unit test pins that no word
-  ever sits in both this guard and the irregular-participle list — the two
-  answer opposite questions, so a word in both is a straight contradiction.
+- the participles whose verb has a perfect with zijn/sein that would otherwise
+  read as a state passive (`gekomen`, `verschenen`, `afgelopen`; `gefahren`,
+  `versunken`, `ausgefallen`). They are guards rather than data entries because
+  they really are participles: the detector recognises them and then declines to
+  count them, which is not the same as pretending they are nouns. The guard
+  applies only behind a zijn/sein auxiliary — `worden`/`werden` has no perfect
+  to suppress — which is why each detector also carries the split of its own
+  auxiliary list into the worden/werden forms (`PROCESS_AUXILIARIES`). A unit
+  test pins that no word ever sits in both this guard and the
+  irregular-participle list: the two answer opposite questions, so a word in
+  both is a straight contradiction.
 
 Both are explained at length in `docs/analysis.md`.

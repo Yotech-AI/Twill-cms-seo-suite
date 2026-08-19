@@ -48,6 +48,12 @@ it('reads a german passive as passive', function (string $sentence) {
     'an inseparable um verb' => ['Der Bericht wird von einer Zusammenfassung umfasst.'],
     'an inseparable voll verb' => ['Die Arbeit ist endlich vollendet.'],
 
+    // A werden form has no perfect to be confused with, so the perfect-only
+    // guard must not reach it: "ein Ticket eskalieren" takes an object, and
+    // this is the everyday shape of it in business German.
+    'an intransitive verb that does take an object' => ['Das Problem wurde eskaliert.'],
+    'the same verb in the plural' => ['Die Tickets werden automatisch eskaliert.'],
+
     // The Zustandspassiv: sein plus a participle, describing the state a deed
     // left behind.
     'a state left behind' => ['Das Geschäft ist seit acht Uhr geöffnet.'],
