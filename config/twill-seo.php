@@ -78,4 +78,11 @@ return [
         'debounce_ms' => 500,
         'throttle' => '60,1',
     ],
+
+    // Throttle for the settings admin's mutating endpoint (PUT /settings).
+    // Looser than analysis.throttle above: this is a handful of deliberate
+    // admin saves, not a per-keystroke debounced call.
+    'settings' => [
+        'throttle' => '30,1',
+    ],
 ];
