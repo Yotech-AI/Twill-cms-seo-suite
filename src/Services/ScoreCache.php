@@ -6,6 +6,7 @@ use TwillSeo\Analysis\AnalysisRunner;
 use TwillSeo\Analysis\Assessment\AssessmentResult;
 use TwillSeo\Analysis\Assessment\ResultCategory;
 use TwillSeo\Models\SeoEntry;
+use TwillSeo\Services\Settings\SeoSettings;
 
 /**
  * Writes cached scores onto a saved model's SeoEntryTranslation rows, so
@@ -25,6 +26,7 @@ final class ScoreCache
         private readonly ModelRegistry $registry,
         private readonly PaperFactory $papers,
         private readonly AnalysisRunner $runner,
+        private readonly SeoSettings $settings,
     ) {}
 
     public function refresh(object $model): void
@@ -33,7 +35,10 @@ final class ScoreCache
             return;
         }
 
-        if (! config('twill-seo.features.analysis', true)) {
+        // DB row over config, like every other feature toggle reads through
+        // SeoSettings::feature() — a raw config() read here would leave the
+        // settings admin's analysis switch unable to stop this from writing.
+        if (! $this->settings->feature('analysis')) {
             return;
         }
 

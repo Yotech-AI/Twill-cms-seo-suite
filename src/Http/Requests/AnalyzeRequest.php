@@ -33,12 +33,15 @@ class AnalyzeRequest extends FormRequest
             'id' => ['required', 'integer'],
             'locale' => ['required', 'string', 'max:10'],
             'fields' => ['sometimes', 'array'],
-            'fields.title' => ['nullable', 'string'],
-            'fields.seo_title' => ['nullable', 'string'],
-            'fields.seo_description' => ['nullable', 'string'],
-            'fields.keyphrase' => ['nullable', 'string'],
-            'fields.slug' => ['nullable', 'string'],
-            'fields.content_override' => ['nullable', 'string'],
+            'fields.title' => ['nullable', 'string', 'max:10000'],
+            'fields.seo_title' => ['nullable', 'string', 'max:10000'],
+            'fields.seo_description' => ['nullable', 'string', 'max:10000'],
+            'fields.keyphrase' => ['nullable', 'string', 'max:10000'],
+            'fields.slug' => ['nullable', 'string', 'max:10000'],
+            // Higher ceiling than the other live-preview fields: this one
+            // carries the WHOLE editor body the live analysis is meant to
+            // score, not a single short input.
+            'fields.content_override' => ['nullable', 'string', 'max:500000'],
         ];
     }
 }

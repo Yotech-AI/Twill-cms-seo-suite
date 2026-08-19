@@ -8,6 +8,7 @@ use TwillSeo\Analysis\AnalysisRunner;
 use TwillSeo\Http\Requests\AnalyzeRequest;
 use TwillSeo\Services\ModelRegistry;
 use TwillSeo\Services\PaperFactory;
+use TwillSeo\Services\Settings\SeoSettings;
 
 /**
  * POST /seo/analyze — the debounced, per-keystroke analysis endpoint the
@@ -18,6 +19,7 @@ use TwillSeo\Services\PaperFactory;
 class AnalyzeController extends Controller
 {
     public function __construct(
+        private readonly SeoSettings $settings,
         private readonly ModelRegistry $registry,
         private readonly PaperFactory $papers,
         private readonly AnalysisRunner $runner,
@@ -25,6 +27,15 @@ class AnalyzeController extends Controller
 
     public function __invoke(AnalyzeRequest $request): JsonResponse
     {
+        // Same DB-over-config feature gate every other public/admin entry
+        // point in this package checks, and the same 404-when-off shape
+        // SitemapController uses — the analysis feature has no separate
+        // "read only" mode, so a disabled feature means this endpoint does
+        // not exist at all rather than answering with an empty report.
+        if (! $this->settings->feature('analysis')) {
+            abort(404);
+        }
+
         $validated = $request->validated();
 
         // AnalyzeRequest already confirmed $validated['type'] is a known

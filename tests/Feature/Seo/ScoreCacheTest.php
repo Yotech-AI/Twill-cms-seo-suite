@@ -4,6 +4,7 @@ use TwillSeo\Contracts\ResolvedContent;
 use TwillSeo\Contracts\SeoContentResolver;
 use TwillSeo\Models\SeoEntry;
 use TwillSeo\Models\SeoEntryTranslation;
+use TwillSeo\Models\SeoSetting;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Repositories\ArticleRepository;
 
@@ -95,6 +96,50 @@ it('writes no scores when refresh_scores_on_save is disabled', function () {
         ->and($translation->readability_score)->toBeNull()
         ->and($translation->analysis_summary)->toBeNull()
         ->and($translation->analyzed_at)->toBeNull();
+});
+
+it('writes no scores when the analysis feature is disabled via the settings ROW, even with config left true', function () {
+    // DB-over-config precedence, same shape as the config-only test above,
+    // but through SeoSettings::feature() rather than the raw config key —
+    // the settings admin's toggle must actually stop ScoreCache from
+    // writing, not just the config file.
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => false]]);
+
+    $article = $this->articles->create([
+        'title' => ['en' => 'Test Article'],
+        'seo_keyphrase' => ['en' => 'green tea'],
+    ]);
+
+    $entry = SeoEntry::query()->where('seoable_id', $article->id)->first();
+    expect($entry)->not->toBeNull();
+
+    $translation = freshSeoTranslation($entry->id, 'en');
+
+    expect($translation)->not->toBeNull()
+        ->and($translation->seo_score)->toBeNull()
+        ->and($translation->readability_score)->toBeNull()
+        ->and($translation->analysis_summary)->toBeNull()
+        ->and($translation->analyzed_at)->toBeNull();
+});
+
+it('writes scores when the settings row re-enables analysis over a config default of false', function () {
+    config(['twill-seo.features.analysis' => false]);
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => true]]);
+
+    $article = $this->articles->create([
+        'title' => ['en' => 'Test Article'],
+        'seo_keyphrase' => ['en' => 'green tea'],
+    ]);
+
+    $entry = SeoEntry::query()->where('seoable_id', $article->id)->first();
+    expect($entry)->not->toBeNull();
+
+    $translation = freshSeoTranslation($entry->id, 'en');
+
+    expect($translation)->not->toBeNull()
+        ->and($translation->seo_score)->not->toBeNull()
+        ->and($translation->readability_score)->not->toBeNull()
+        ->and($translation->analyzed_at)->not->toBeNull();
 });
 
 it('never lets a failing content resolver break the save', function () {

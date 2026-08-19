@@ -2,6 +2,7 @@
 
 use A17\Twill\Services\Forms\BladePartial;
 use Illuminate\Support\Collection;
+use TwillSeo\Models\SeoSetting;
 use TwillSeo\Services\Form\SeoFields;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Models\Page;
@@ -101,6 +102,26 @@ it('omits the analysis panel when the analysis feature is disabled, even with $a
     $fieldset = SeoFields::fieldset();
 
     expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->toBeEmpty();
+});
+
+it('omits the analysis panel when the analysis feature is disabled via the settings ROW, even with config left true', function () {
+    // DB-over-config precedence, the same shape HeadRenderTest already pins
+    // for the general section: the settings row must win over whatever
+    // config('twill-seo.features.analysis') still says.
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => false]]);
+
+    $fieldset = SeoFields::fieldset();
+
+    expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->toBeEmpty();
+});
+
+it('includes the analysis panel when the settings row re-enables it over a config default of false', function () {
+    config(['twill-seo.features.analysis' => false]);
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => true]]);
+
+    $fieldset = SeoFields::fieldset();
+
+    expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->not->toBeEmpty();
 });
 
 it('exposes analysisPanel() and sideChip() as their own BladePartials', function () {

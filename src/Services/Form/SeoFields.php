@@ -7,6 +7,7 @@ use A17\Twill\Services\Forms\Fields\Checkbox;
 use A17\Twill\Services\Forms\Fields\Input;
 use A17\Twill\Services\Forms\Fields\Medias;
 use A17\Twill\Services\Forms\Fieldset;
+use TwillSeo\Services\Settings\SeoSettings;
 
 /**
  * The seo_* form fields every managed model gets, as a single closed
@@ -36,7 +37,13 @@ class SeoFields
     {
         $fields = [];
 
-        if ($analysis && config('twill-seo.features.analysis')) {
+        // A static factory has no host model in scope to inject SeoSettings
+        // through, so it is resolved via the container here — the same
+        // pattern the analysis-panel partial itself already uses for
+        // ModelRegistry. Reading through SeoSettings (DB row over config)
+        // rather than a raw config() call is what lets the settings admin's
+        // analysis toggle actually take effect without a deploy.
+        if ($analysis && app(SeoSettings::class)->feature('analysis')) {
             $fields[] = self::analysisPanel();
         }
 

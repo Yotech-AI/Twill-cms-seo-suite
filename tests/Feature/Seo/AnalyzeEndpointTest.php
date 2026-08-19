@@ -4,6 +4,7 @@ use A17\Twill\Models\Block;
 use Illuminate\Support\Facades\Route;
 use TwillSeo\Contracts\ResolvedContent;
 use TwillSeo\Contracts\SeoContentResolver;
+use TwillSeo\Models\SeoSetting;
 use TwillSeo\Tests\Fixtures\Blocks\FixtureContentBlock;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Repositories\ArticleRepository;
@@ -72,6 +73,50 @@ it('404s on an id the registered model does not have', function () {
 
     $this->postJson(twillSeoUrl('analyze'), ['type' => 'articles', 'id' => 999999, 'locale' => 'en'])
         ->assertNotFound();
+});
+
+it('rejects an overlong content_override field with 422', function () {
+    $this->actingAsTwillAdmin();
+
+    $this->postJson(twillSeoUrl('analyze'), [
+        'type' => 'articles',
+        'id' => 1,
+        'locale' => 'en',
+        'fields' => ['content_override' => str_repeat('a', 500_001)],
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors('fields.content_override', null);
+});
+
+it('404s when the analysis feature is disabled via the settings ROW, even with config left true', function () {
+    // Same DB-over-config 404 gate SitemapController already has for its own
+    // feature — the endpoint must not exist at all once the settings admin
+    // has switched analysis off, regardless of what config still says.
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => false]]);
+
+    $article = $this->articles->create(['title' => ['en' => 'Test Article']]);
+
+    $this->actingAsTwillAdmin();
+
+    $this->postJson(twillSeoUrl('analyze'), [
+        'type' => 'articles',
+        'id' => $article->id,
+        'locale' => 'en',
+    ])->assertNotFound();
+});
+
+it('analyzes normally when the settings row re-enables analysis over a config default of false', function () {
+    config(['twill-seo.features.analysis' => false]);
+    SeoSetting::create(['id' => 1, 'features' => ['analysis' => true]]);
+
+    $article = $this->articles->create(['title' => ['en' => 'Test Article']]);
+
+    $this->actingAsTwillAdmin();
+
+    $this->postJson(twillSeoUrl('analyze'), [
+        'type' => 'articles',
+        'id' => $article->id,
+        'locale' => 'en',
+    ])->assertOk();
 });
 
 it('analyzes the saved content end to end when no fields are posted', function () {
