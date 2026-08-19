@@ -25,7 +25,7 @@ it('lists Twill SEO on the shared Plugins admin page', function () {
         ->assertSee('Twill SEO');
 });
 
-it('serves the placeholder settings page to an authenticated admin', function () {
+it('serves the settings page to an authenticated admin', function () {
     $this->actingAsTwillAdmin()
         ->get(twillSeoUrl())
         ->assertOk()

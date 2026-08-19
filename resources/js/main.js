@@ -1,13 +1,13 @@
 import { createApp } from 'vue';
 import PanelApp from './panel/PanelApp.vue';
+import SettingsApp from './settings/SettingsApp.vue';
 import './styles.css';
 
-// Mount-type registry: 'panel' is this task's only entry. A later task adds
-// 'settings' (a different mount living elsewhere on the admin) — this stays
-// a lookup table specifically so that addition is one more entry, not a
-// rewrite of the boot logic below.
+// Mount-type registry, kept as a lookup table specifically so a new mount
+// type is one more entry here, not a rewrite of the boot logic below.
 const MOUNTS = {
     panel: PanelApp,
+    settings: SettingsApp,
 };
 
 function parseConfig(element) {

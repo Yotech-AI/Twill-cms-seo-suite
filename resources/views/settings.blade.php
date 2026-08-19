@@ -1,29 +1,26 @@
+{{--
+    Same @once asset-push pattern as resources/views/form/analysis-panel.blade.php
+    — this is the only OTHER page that mounts the package's Vue bundle, and it
+    is a full free-layout page rather than a form partial, so there is no risk
+    of it rendering twice in one response the way a duplicated fieldset could.
+    @once is kept anyway for consistency with the established pattern.
+--}}
+@once
+    @push('extra_css')
+        <link rel="stylesheet" href="{{ \TwillSeo\Http\Controllers\AssetController::url('twill-seo.css') }}">
+    @endpush
+    @push('extra_js')
+        <script src="{{ \TwillSeo\Http\Controllers\AssetController::url('twill-seo.iife.js') }}" defer></script>
+    @endpush
+@endonce
+
 @extends('twill::layouts.free')
 
 @section('customPageContent')
-    <style>
-        .tss-header {
-            margin: 40px 0 20px;
-        }
-        .tss-header h2 {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .tss-placeholder {
-            padding: 20px;
-            border: 1px solid rgba(115, 115, 115, 0.3);
-            border-radius: 4px;
-        }
-        .tss-placeholder p {
-            opacity: 0.6;
-        }
-    </style>
-
-    <div class="tss-header">
+    <div class="tss-settings-header">
         <h2>{{ __('Twill SEO') }}</h2>
+        <p>{{ __('Site identity, per-content-type templates, feature toggles and advanced options.') }}</p>
     </div>
 
-    <div class="tss-placeholder">
-        <p>{{ __('Settings arrive in an upcoming release.') }}</p>
-    </div>
+    <div data-twill-seo-mount="settings" data-twill-seo='@json($config)'></div>
 @stop

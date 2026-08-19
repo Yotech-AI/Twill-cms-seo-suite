@@ -10,7 +10,8 @@
 
 .tss-panel,
 .tss-placeholder,
-.tss-side-chip {
+.tss-side-chip,
+.tss-settings {
     --tss-red: #dc3232;
     --tss-orange: #ee7c1b;
     --tss-green: #7ad03a;
@@ -424,4 +425,470 @@
     align-items: center;
     gap: 4px;
     text-transform: uppercase;
+}
+
+/* ---- Settings page ---- */
+
+.tss-settings-header {
+    margin: 40px 0 20px;
+}
+
+.tss-settings-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.tss-settings-header p {
+    color: rgba(42, 47, 52, 0.6);
+    margin-top: 4px;
+}
+
+.tss-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--tss-text);
+    max-width: 720px;
+}
+
+.tss-settings *,
+.tss-settings *::before,
+.tss-settings *::after {
+    box-sizing: border-box;
+}
+
+/* ---- Cards ---- */
+
+.tss-card {
+    background: var(--tss-bg);
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    padding: 16px;
+}
+
+.tss-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.tss-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.tss-card__description {
+    font-size: 12px;
+    color: var(--tss-text-muted);
+    margin: 2px 0 0;
+}
+
+.tss-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ---- Buttons ---- */
+
+.tss-btn {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--tss-radius);
+    padding: 6px 12px;
+    cursor: pointer;
+    flex: none;
+}
+
+.tss-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.tss-btn--primary {
+    color: #fff;
+    background: var(--tss-accent);
+    border: 1px solid var(--tss-accent);
+}
+
+.tss-btn--primary:hover:not(:disabled) {
+    filter: brightness(0.92);
+}
+
+.tss-btn--secondary {
+    color: var(--tss-accent);
+    background: transparent;
+    border: 1px solid var(--tss-accent);
+}
+
+.tss-btn--secondary:hover:not(:disabled) {
+    background: var(--tss-accent);
+    color: #fff;
+}
+
+.tss-btn--text {
+    color: var(--tss-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 6px 8px;
+}
+
+.tss-btn--text:hover:not(:disabled) {
+    color: var(--tss-text);
+    text-decoration: underline;
+}
+
+/* ---- Fields ---- */
+
+.tss-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tss-field--narrow {
+    max-width: 200px;
+}
+
+.tss-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.tss-field-row > .tss-field {
+    flex: 1 1 200px;
+}
+
+.tss-field__label {
+    font-weight: 600;
+}
+
+.tss-field__hint {
+    font-size: 11px;
+    color: var(--tss-text-muted);
+    margin: 0;
+}
+
+.tss-input {
+    font: inherit;
+    font-size: 13px;
+    color: var(--tss-text);
+    background: var(--tss-bg);
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    padding: 7px 9px;
+    width: 100%;
+}
+
+.tss-input:focus {
+    outline: none;
+    border-color: var(--tss-accent);
+}
+
+.tss-input:disabled {
+    background: var(--tss-bg-muted);
+    color: var(--tss-text-muted);
+}
+
+/* ---- Radios / checkboxes ---- */
+
+.tss-radio-group {
+    display: flex;
+    gap: 16px;
+}
+
+.tss-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.tss-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.tss-checkbox--inline {
+    align-self: center;
+}
+
+.tss-checkbox--block {
+    align-items: flex-start;
+    padding: 8px 0;
+    border-top: 1px solid var(--tss-border);
+}
+
+.tss-checkbox--block:first-of-type {
+    border-top: none;
+}
+
+.tss-checkbox input[type='checkbox'],
+.tss-radio input[type='radio'] {
+    margin-top: 2px;
+    flex: none;
+}
+
+.tss-checkbox__label {
+    display: block;
+    font-weight: 600;
+}
+
+.tss-checkbox__hint {
+    display: block;
+    font-size: 11px;
+    color: var(--tss-text-muted);
+    margin-top: 2px;
+}
+
+/* ---- Content type matrix ---- */
+
+.tss-content-type-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px solid var(--tss-border);
+}
+
+.tss-content-type-row:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.tss-content-type-row__label {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* ---- Social profiles / chip rows ---- */
+
+.tss-chip-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.tss-chip-row .tss-input {
+    flex: 1 1 auto;
+}
+
+.tss-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    background: var(--tss-bg);
+}
+
+.tss-chip-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--tss-text);
+    background: var(--tss-bg-muted);
+    border: 1px solid var(--tss-border);
+    border-radius: 10px;
+    padding: 3px 6px 3px 10px;
+}
+
+.tss-chip-tag__remove {
+    font: inherit;
+    color: var(--tss-text-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.tss-chip-tag__remove:hover {
+    color: var(--tss-red);
+}
+
+.tss-chips__input {
+    flex: 1 1 160px;
+    min-width: 160px;
+    font: inherit;
+    font-size: 12px;
+    border: 0;
+    outline: none;
+    padding: 4px;
+    background: transparent;
+}
+
+/* ---- Media picker ---- */
+
+.tss-media-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tss-media-picker__thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--tss-radius);
+    border: 1px solid var(--tss-border);
+    flex: none;
+}
+
+.tss-media-picker__thumb--empty {
+    background: var(--tss-bg-muted);
+}
+
+.tss-media-picker__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+/* ---- Success banner ---- */
+
+.tss-banner--success {
+    color: #1a5c1a;
+    background: #eef8ee;
+    border-color: #c9e8c9;
+}
+
+/* ---- Media picker modal ---- */
+
+.tss-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 22, 25, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 390;
+    padding: 20px;
+}
+
+.tss-modal {
+    width: 100%;
+    max-width: 640px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--tss-bg);
+    border-radius: var(--tss-radius);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.tss-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--tss-border);
+}
+
+.tss-modal__title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.tss-modal__close {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--tss-text-muted);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.tss-modal__body {
+    padding: 12px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tss-modal__status {
+    color: var(--tss-text-muted);
+    font-size: 12px;
+    margin: 12px 0;
+}
+
+.tss-modal__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.tss-modal__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--tss-border);
+    border-radius: var(--tss-radius);
+    padding: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    color: var(--tss-text);
+    text-align: center;
+}
+
+.tss-modal__item:hover {
+    border-color: var(--tss-accent);
+}
+
+.tss-modal__thumb {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--tss-radius);
+    background: var(--tss-bg-muted);
+}
+
+.tss-modal__thumb--empty {
+    display: block;
+}
+
+.tss-modal__item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.tss-modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--tss-border);
+}
+
+.tss-modal__page {
+    font-size: 12px;
+    color: var(--tss-text-muted);
 }
