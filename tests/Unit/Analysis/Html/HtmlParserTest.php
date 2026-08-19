@@ -110,6 +110,11 @@ it('classifies link scope and nofollow', function (bool $legacy) {
         ['#section', LinkScope::Other, false],
         ['mailto:hi@example.test', LinkScope::Other, false],
         ['tel:+3112345678', LinkScope::Other, false],
+        // sms/javascript/data go nowhere on the web either — see
+        // docs/analysis.md's own divergence note on this scheme list.
+        ['sms:+3112345678', LinkScope::Other, false],
+        ['javascript:void(0)', LinkScope::Other, false],
+        ['data:text/plain;base64,aGVsbG8=', LinkScope::Other, false],
     ]);
 })->with('analysis html backends');
 
@@ -125,7 +130,7 @@ it('reads only internal or only external links when asked', function (bool $lega
 
     expect($content->linksInScope(LinkScope::Internal))->toHaveCount(3)
         ->and($content->linksInScope(LinkScope::External))->toHaveCount(2)
-        ->and($content->linksInScope(LinkScope::Other))->toHaveCount(3);
+        ->and($content->linksInScope(LinkScope::Other))->toHaveCount(6);
 })->with('analysis html backends');
 
 it('treats every link as external when the paper has no permalink', function (bool $legacy) {

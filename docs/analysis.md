@@ -1,10 +1,126 @@
 # The content analysis
 
+## How scoring works
+
+Every check an assessment runs produces one `AssessmentResult`: a 0-9 score
+(plus two sentinels — `-1` when the check could not run at all, `0` when it
+has feedback rather than a verdict), a derived `Rating`
+(`bad`/`ok`/`good`, or the neutral `feedback`/`error`) and a `ResultCategory`
+the editor panel groups by (`problems`/`improvements`/`good`, plus
+`feedback`/`errors`). Rating and category are always *derived* from the
+score, never accepted independently — a result carrying a "good" rating next
+to a score of 3 is not representable.
+
+The traffic-light color for a single check follows its `Rating` directly:
+red for `bad`, orange for `ok`, green for `good`; `feedback` and `error`
+both read as neutral grey, since neither is a judgement on the content —
+`countsTowardScore` is `false` for both, and they never move the aggregate.
+
+The two section scores shown at the top (SEO, readability) are each a
+`ScoreSection.score` out of 100, computed and banded differently:
+
+- **SEO** (`SeoScoreAggregator`): the average of every counted result against
+  a 9-point maximum, as a percentage, floored at 1 (never 0 — see below) and
+  capped at 100. Banded exactly like a single check: `<=40` bad/red,
+  `<=70` ok/orange, `>70` good/green.
+- **Readability** (`ReadabilityPenaltyAggregator`): *not* an average. Every
+  counted result that is `ok` adds a penalty of 2, every `bad` result adds
+  3, and `good` adds nothing — a single badly failing check has to visibly
+  move the needle, which averaging over a dozen checks would not do. The
+  total penalty then picks one of exactly three fixed scores: `<=4` → **90**
+  (good), `<=6` → **60** (ok), otherwise → **30** (bad). A readability score
+  is therefore always 30, 60 or 90 — never any other number.
+
+**A score of `0` means "not available", not "the worst possible score".**
+The engine reserves it: `SeoScoreAggregator` floors every real score at 1
+specifically so 0 stays unreachable there, and
+`ReadabilityPenaltyAggregator` returns "not available" outright whenever
+fewer than two of its checks could run at all — a title with no body content
+yet hits this on every save, which is the ordinary state of a freshly
+created item, not a rare edge case. Both a `0` score and a genuinely
+un-analyzed `null` (nothing cached yet) render as the same neutral grey
+dot, worded differently ("Not available" vs "Not analyzed") — coloring a
+fresh, not-yet-written page's `0` red would tell its author it had already
+failed. `TwillSeo\Support\ScoreRating` is the one place these boundaries and
+that grey-zero rule live for anything reading a *cached* score (listing
+columns, the form sidebar chip); the Vue editor panel mirrors the same
+numbers from a live report's own `rating` string rather than re-deriving a
+color from the bare score, so the two can never disagree.
+
+## Working with the report as JSON
+
+`AnalysisReport::jsonSerialize()` returns a plain PHP array with real
+`float` values intact — nothing is JSON-encoded yet at that layer. Every
+assessment's `params` (`percentage`, `density`, `fleschScore`, and more,
+depending on the check) alongside `insights.fleschScore` can legitimately
+land on a whole number — a passive-voice `percentage` of exactly `0` is a
+float `0.0`, not an int, and a Flesch score can round to a whole one too.
+`ScoreCache` separately stores a smaller, derived shape on save
+(`analysis_summary`: a red/orange/green tally per section plus one
+surviving float, `insights.flesch`), subject to the same fact below.
+
+**Plain `json_encode()` narrows a whole float to a bare integer**
+(`0.0` becomes `0`) — and this package's own two encoding points do not
+prevent that: the analyze endpoint's `response()->json(...)` (Symfony's
+`JsonResponse::DEFAULT_ENCODING_OPTIONS` is just the four `JSON_HEX_*`
+flags, no `JSON_PRESERVE_ZERO_FRACTION`) and `analysis_summary`'s Eloquent
+`array` cast (a plain `json_encode()` under the hood —
+`HasAttributes::asJson()` defaults its flags to `0`) both already lose a
+whole-number float's fractional zero in the JSON text they produce. There is no way to
+recover that distinction from the transmitted text or the stored column
+afterward — this is invisible to the JavaScript editor panel (no int/float
+type distinction exists in JS) and is an accepted trade-off there, but it
+matters for anyone working with the PHP data directly: a host calling
+`AnalysisRunner::analyze()` in-process (bypassing this package's HTTP layer
+entirely) and encoding the raw report itself, or any host-side code
+re-serializing an already-received report for its own strict-typed storage
+or API. Either one should pass `JSON_PRESERVE_ZERO_FRACTION` at that
+encoding call to keep the distinction. The golden-file report tests
+(`tests/Unit/Analysis/Report/GoldenReportTest.php`) apply it for exactly
+this reason: pinning the report's real types, not just its numbers.
+
 ## Divergences
 
 Where this engine deliberately judges a text differently from the analysis it
 takes its thresholds from. Each one is a decision, not an accident, and each is
 pinned by a test.
+
+### A link's scope covers more than mailto, tel and javascript
+
+`internalLinks`, `externalLinks` and `textCompetingLinks` all read a link's
+`LinkScope` to decide whether it addresses another web page at all — a
+fragment (`#section`), a `mailto:`, or a `tel:` link counts toward neither
+an internal nor an external link, since none of them takes the reader
+anywhere the keyphrase's own competition lives.
+
+This engine widens that set by two: `sms:` (a text-message link, the exact
+same non-page shape as `tel:`) and `data:` (an inline data URI, never a
+fetchable page of its own) are excluded on the same reasoning. Both are
+uncommon in body copy, but a page that has one should not have it silently
+miscounted as a real outbound link just because the original set of
+excluded schemes only named three.
+
+Tested in `HtmlParserTest` ("classifies link scope and nofollow").
+
+### Analysis feedback renders in the admin's locale, not the paper's
+
+A Dutch or German page's `text` feedback strings — "68.2 percent of the
+sentences use a transition word", say — render in whichever locale the
+*admin* is currently using, not the locale of the content being analyzed.
+The `id`, `score`, `rating` and `params` (the raw numbers behind a message)
+are unaffected either way; only the human-readable sentence is admin-locale.
+
+This is a deliberate, Yoast-matching choice, not an oversight: an editor
+who writes in Dutch is not necessarily reading the admin in Dutch, and the
+alternative — feedback in the CONTENT's language — would leave an
+English-speaking editor of a multilingual site unable to read the advice on
+their own Dutch or German pages at all.
+`TwillSeo\Support\TranslatorMessageRenderer` (the renderer actually wired
+up in the service provider) resolves every `messageKey` through Laravel's
+own translator under `app()->getLocale()`, which is exactly the admin's
+locale during an authenticated admin request — never the paper's `locale`
+field, which `AnalysisRunner` only ever uses to pick which *engine* (word
+lists, thresholds) analyzes the text.
 
 ### A section starts at the top of the page, not at the first subheading
 
