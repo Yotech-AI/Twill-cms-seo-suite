@@ -117,6 +117,34 @@ it('round-trips the content_types section through PUT', function () {
     expect(SeoSetting::current()->content_types['articles']['schema_type'])->toBe('Article');
 });
 
+it('rejects a content_types key that is not in the model registry, and it never reaches the stored JSON', function () {
+    $this->actingAsTwillAdmin();
+
+    $this->putJson(twillSeoUrl('settings'), [
+        'content_types' => [
+            'not_a_real_type' => ['sitemap' => true],
+        ],
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors('content_types', null);
+
+    expect($this->getJson(twillSeoUrl('settings'))->json('sections.content_types.not_a_real_type'))->toBeNull()
+        ->and(SeoSetting::current()->content_types)->toBeNull();
+});
+
+it('rejects a mixed content_types payload (one valid key, one unregistered) entirely, not just the bad key', function () {
+    $this->actingAsTwillAdmin();
+
+    $this->putJson(twillSeoUrl('settings'), [
+        'content_types' => [
+            'articles' => ['schema_type' => 'Article'],
+            'not_a_real_type' => ['sitemap' => true],
+        ],
+    ])->assertStatus(422)
+        ->assertJsonValidationErrors('content_types', null);
+
+    expect(SeoSetting::current()->content_types)->toBeNull();
+});
+
 it('round-trips the features section through PUT', function () {
     $this->actingAsTwillAdmin();
 

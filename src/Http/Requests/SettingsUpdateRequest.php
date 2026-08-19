@@ -4,6 +4,7 @@ namespace TwillSeo\Http\Requests;
 
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use TwillSeo\Services\ModelRegistry;
 
 /**
  * Validates a PUT /seo/settings call. Every one of the four top-level
@@ -26,10 +27,17 @@ class SettingsUpdateRequest extends FormRequest
     }
 
     /**
+     * ModelRegistry is method-injected (Laravel resolves rules() through the
+     * container, same as authorize()/messages()) rather than pulled from
+     * app() inline, so this stays a normal, testable constructor-style
+     * dependency.
+     *
      * @return array<string,mixed>
      */
-    public function rules(): array
+    public function rules(ModelRegistry $registry): array
     {
+        $knownContentTypes = array_keys($registry->all());
+
         return [
             'general' => ['sometimes', 'array'],
             'general.site_name' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -42,7 +50,26 @@ class SettingsUpdateRequest extends FormRequest
             'general.social_profiles' => ['sometimes', 'array'],
             'general.social_profiles.*' => ['string', 'url', 'max:2048'],
 
-            'content_types' => ['sometimes', 'array'],
+            // Rejected here (422, all-or-nothing) rather than silently
+            // filtered in the controller: SettingsPayload::contentTypes()
+            // only ever iterates registry keys, so an unregistered key
+            // saved into the JSON column would be permanently invisible and
+            // unremovable through this app — an orphaned blob only a raw DB
+            // edit could clean up. A clear validation error naming the bad
+            // key is friendlier to a future API caller than data quietly
+            // vanishing, and there is nothing left for the controller to
+            // additionally guard once this rejects every request carrying
+            // an unknown key before update() ever runs.
+            'content_types' => [
+                'sometimes', 'array',
+                function (string $attribute, mixed $value, Closure $fail) use ($knownContentTypes): void {
+                    $unknown = array_diff(array_keys((array) $value), $knownContentTypes);
+
+                    if ($unknown !== []) {
+                        $fail('Unknown content type(s): '.implode(', ', $unknown).'.');
+                    }
+                },
+            ],
             'content_types.*' => ['array'],
             'content_types.*.title_template' => ['sometimes', 'nullable', 'string', 'max:255'],
             'content_types.*.description_template' => ['sometimes', 'nullable', 'string', 'max:500'],
