@@ -58,3 +58,205 @@ the assessment is asking the author to look at.
 
 Tested in `PassiveVoiceTest`, whose forty-five curated sentences pin both sides
 of the line.
+
+## Passive voice in Dutch and German
+
+The English ruling above — an adjectival participle counts unless a degree
+adverb grades it — carries over to both packs unchanged. "Ze was verbaasd" and
+"er war überrascht" are passive; "ze was erg verbaasd" and "er war sehr
+überrascht" are not. What follows is only where the two languages needed a
+decision English did not pose.
+
+### A clause holds both, in either order
+
+The English detector looks a few words ahead of its auxiliary. Neither Dutch nor
+German lets it: both push the participle to the end of its clause ("de brief
+werd gisteren door de secretaresse geschreven", "der Bericht wurde von der
+Abteilung erstellt"), and in a subordinate clause the finite verb moves behind
+it again ("… dat het huis verkocht is", "… dass das Haus verkauft wurde"). No
+window and no direction describes that.
+
+So both detectors ask a different question: **does one clause hold both an
+auxiliary and a participle?** That is only honest if the clause is cut small
+first, and it is cut three ways:
+
+- on punctuation, as in English;
+- on the conjunctions that open a subordinate clause. German writes a comma
+  before those anyway, so this mostly matters for Dutch, which does not: "ik
+  denk dat het klaar is" has no comma at all;
+- on the coordinating conjunctions that join two whole sentences (`en`/`und`,
+  `maar`/`aber`, `of`/`oder`, `want`/`denn`). Without this last cut, "het gebouw
+  is groot en veel mensen hebben het bezocht" would pair the auxiliary of the
+  first half with the participle of the second.
+
+Subject pronouns are **not** clause starters here, though they are in English.
+Both languages put the finite verb second, so the subject regularly follows its
+own auxiliary — "gisteren werd het huis verkocht" — and breaking there would
+throw the passive away rather than find it.
+
+The cost of the looser pairing is a sentence where a comma-free relative clause
+puts a past tense next to an unrelated auxiliary ("de man die het huis verkocht
+is mijn buurman"). That is rare, and the alternative is missing most real Dutch
+and German passives.
+
+### zijn and sein also build a perfect, and only the verb knows which
+
+Both packs count the state passive: "de brief is geschreven", "die Tür ist
+verschlossen". That is what a reader hears, and it keeps all three languages
+consistent.
+
+The price is that `zijn`/`sein` is also the perfect auxiliary of every verb that
+describes a change rather than a deed: "hij is gekomen", "de prijzen zijn
+gestegen", "er ist gefahren", "die Preise sind gestiegen". Those are not
+passive, no auxiliary can say so, and no guard about the *shape* of the word can
+either — the difference is that the verb takes no object.
+
+So each detector carries a list of the participles that never form a passive
+(`PERFECT_ONLY_PARTICIPLES`). It sits next to the determiner and degree-adverb
+guards rather than in `passive/non-participles.php`, because these words really
+are participles: the detector recognises them and then declines to count them,
+which is not the same as pretending they are nouns.
+
+`sein` itself is deliberately **not** in the German auxiliary list, only its
+inflected forms. Bare "sein" is also the possessive determiner, and listing it
+would read "Sein Vater hat das Auto gekauft" as passive.
+
+### German: werden is the future auxiliary too
+
+This is the one place where a rule that works in English and Dutch actively
+misleads in German. `werden` builds the passive *and* the future, so "er wird
+kommen", "er wird bezahlen" and "sie wird uns verstehen" all carry a passive
+auxiliary and are not passive at all. Worse, "sie wird Ärztin" uses it as
+"become".
+
+The only thing separating those from "er wird bezahlt" is the shape of the
+second verb, so the German participle rule is deliberately narrow about `-en`:
+it counts only when the word carries `ge-` (which no infinitive has) or appears
+in `passive/irregular-participles.php`. An inseparable prefix plus `-en` —
+"bezahlen", "verstehen", "erklären" — is an infinitive, and an infinitive after
+`wird` is a future.
+
+The residue is real and bounded: a handful of verbs spell their infinitive and
+their participle identically ("bekommen", "erhalten", "verlassen", "vergessen"),
+so "er wird das Paket bekommen" is counted as passive. German offers no way to
+tell those apart by form, and the alternative — dropping them from the list —
+would miss every real passive those verbs build.
+
+### German: three participle shapes, not one
+
+German writes its participle three ways, and all three had to be recognised:
+
+- `ge-` with `-t` or `-en`, optionally behind a separable prefix that puts the
+  `ge-` in the middle of the word: "gebaut", "geschrieben", "durchgeführt",
+  "eingeladen";
+- an inseparable prefix with `-t`: "bezahlt", "verkauft", "erhöht";
+- a verb borrowed into `-ieren`, which takes no `ge-` at all: "informiert",
+  "organisiert", "dokumentiert".
+
+That third shape is easy to forget and covers a great deal of modern German
+business copy — a paragraph saying "wurde nie ordentlich dokumentiert" would
+otherwise read as active. It is safe against the future trap for the same reason
+the others are: the infinitive ends in `-ieren`, not `-iert`.
+
+Dutch needs no equivalent rule, because its borrowed verbs keep the `ge-`
+("georganiseerd", "gepubliceerd").
+
+### Where a prefix only looks separable
+
+Both languages have verbs whose prefix is spelled exactly like a separable one
+and behaves like an inseparable one, so they take no `ge-` anywhere:
+"ondertekend", "onderzocht", "voldaan", "overwogen"; "umfasst", "durchsucht",
+"vollendet". Each is listed in `passive/irregular-participles.php` rather than
+ruled, because widening the prefix rule to `onder-`/`over-`/`um-`/`durch-` would
+swallow "onderhoud", "overzicht", "achtergrond", "Umwelt" and "Durchschnitt"
+along with them.
+
+### Which participial adjectives stay participles
+
+`bekend`, `bereid`, `verbaasd`, `verkeerd` (nl) and `bekannt`, `beliebt`,
+`bewusst`, `verwandt`, `geeignet` (de) are all left **out** of the
+non-participle lists. Each is a genuine participle — of *bekennen*, *bereiden*,
+*verbazen*, *verkeren*, *bekennen*, *belieben*, *eignen* — that also works as an
+adjective, and their adjectival use is handled by the degree-adverb rule,
+exactly as English handles "tired" and "excited". Listing them would make the
+degree-adverb guard untestable and would silently drop "het is bekend" alongside
+"hij is erg bekend".
+
+German `bereit` is the one that goes the other way, and it is worth naming
+because it looks identical to the Dutch word: there is no verb it is the
+participle of (*bereiten* makes *bereitet*), so it **is** on the German
+non-participle list. Dutch `bereid` really is the participle of *bereiden*, so
+it is not on the Dutch one. The same-looking word gets opposite treatment for a
+reason that is about the language, not about consistency.
+
+`geleden` (nl) is a third kind of call. It is a real participle of *lijden*, but
+in web copy it is overwhelmingly the word "ago" ("twee jaar geleden"), while the
+passive of *lijden* is vanishingly rare — so it is listed as a non-participle.
+
+Tested in `Language/Nl/PassiveVoiceTest` and `Language/De/PassiveVoiceTest`,
+each of which pins both directions with around fifty curated sentences.
+
+## Counting syllables in Dutch and German
+
+Neither language needs English's silent-e rule: the final -e of "mode",
+"gemeente", "Katze" and "Sprache" is spoken, and counting it is simply right.
+Both counters instead add a rule English has no use for.
+
+### A vowel run splits where the language does not spell it as one sound
+
+"oe", "ij", "aai" and "eeu" are single Dutch sounds; "eo", "ea", "ua" and "io"
+never are. "ei", "au", "eu" and "ie" are single German sounds; "io", "ea" and
+"ua" never are. So each counter walks a run of vowels taking the longest cluster
+its language really spells, and counts every leftover vowel on its own.
+
+That one rule is what makes "the-a-ter", "ja-nu-a-ri", "vi-de-o", "si-tu-a-tie",
+"Na-ti-on", "The-a-ter" and "Si-tu-a-ti-on" come out right with no word list at
+all. In particular the whole German `-tion` family is handled by rule rather
+than by enumeration, which is the difference between a counter that stays right
+and one that rots.
+
+The deviation lists are correspondingly small, and hold only the opposite case:
+a pair the language really does spell as one sound, in a word where it happens
+to be two — "mu-se-um", "se-ri-eus", "I-de-en", "Fa-mi-li-en".
+
+### Dutch reads the diaeresis as the syllable break it is
+
+Dutch writes ë, ï, ö and ü precisely to say "a new syllable starts here", which
+is the only reason "ideeën", "patiënt", "ruïne" and "coördinatie" carry one. The
+Dutch counter splits a vowel run at any diaeresis that follows a vowel and then
+drops the mark, so "beëindigen" reads as be-ëin-di-gen. German has no diaeresis
+— ä, ö and ü are ordinary vowels there — so the German counter does no such
+thing.
+
+### Two small shared rules
+
+`qu` is one consonant plus the vowel after it, not two vowels: "Quel-le" is two
+beats, not three. And `y` in front of a vowel is the consonant it sounds like
+("yo-ga", "Bay-ern") while it is a vowel everywhere else ("systeem", "A-na-ly-se").
+
+### Everything is mb-safe
+
+Both counters work through `preg_*` with `/u` and `mb_substr`/`mb_strlen` on
+whole strings. There is no byte indexing anywhere, because "ruïne", "Häuser" and
+"Straße" have to survive being counted. (The English counter still indexes by
+byte in two places; it only ever sees ASCII endings, but the newer counters
+deliberately do not copy the pattern.)
+
+Tested in `Language/Nl/SyllableCounterTest` and `Language/De/SyllableCounterTest`,
+each pinning every word of a hand-verified fixture of over a hundred words.
+
+## Reading ease per language
+
+Each language scores on its own published adaptation, because the constants are
+fitted to how much a language says per word and per sentence:
+
+| Language | Formula | Source |
+| --- | --- | --- |
+| English | 206.835 − 1.015 × ASL − 84.6 × syllables per word | Flesch, 1948 |
+| Dutch | 206.84 − 0.77 × syllables per 100 words − 0.93 × ASL | Douma, 1960 |
+| German | 180 − ASL − 58.5 × syllables per word | Amstad, 1978 |
+
+All three land on the same hundred-point scale and are banded by the same
+`FleschBand`, so a Dutch page and an English page reading "easy" mean the same
+thing to an editor. Each is pinned by a fixture whose words and syllables are
+counted by hand in the test's own comment.
