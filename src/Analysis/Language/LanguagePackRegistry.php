@@ -2,6 +2,7 @@
 
 namespace TwillSeo\Analysis\Language;
 
+use TwillSeo\Analysis\Language\De\GermanLanguagePack;
 use TwillSeo\Analysis\Language\En\EnglishLanguagePack;
 use TwillSeo\Analysis\Language\Nl\DutchLanguagePack;
 
@@ -30,6 +31,7 @@ final class LanguagePackRegistry
         $registry = new self;
         $registry->register(new EnglishLanguagePack);
         $registry->register(new DutchLanguagePack);
+        $registry->register(new GermanLanguagePack);
 
         return $registry;
     }

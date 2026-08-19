@@ -40,6 +40,11 @@ it('reads a dutch passive as passive', function (string $sentence) {
     'separable participle with af' => ['Het pakket werd bij de buren afgeleverd.'],
     'separable participle with uit and a strong stem' => ['Ze werd voor het examen uitgenodigd.'],
 
+    // Verbs whose prefix looks separable but is not: no ge- anywhere.
+    'an inseparable onder verb' => ['Het contract is door beide partijen ondertekend.'],
+    'an inseparable vol verb' => ['Aan alle eisen is voldaan.'],
+    'an inseparable over verb' => ['Dat voorstel werd zorgvuldig overwogen.'],
+
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],
     'nothing was said' => ['Er werd niets gezegd over de vertraging.'],

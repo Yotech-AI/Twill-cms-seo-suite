@@ -16,7 +16,14 @@
  *     which the shape rule reserves for ge- words — otherwise every "verkopen"
  *     and "vertellen" in the copy would read as a participle. "verloren",
  *     "vergeten" and "ontvangen" are here for that reason.
- *  2. Participles that end in -aan, which no ending in the rule allows:
+ *  2. Participles of verbs whose prefix (onder-, over-, voor-, aan-, om-, vol-,
+ *     achter-, weer-) is written exactly like a separable one but is not: they
+ *     take no ge- either, so the shape rule looks straight past them.
+ *     "Het contract is ondertekend" and "aan de eisen is voldaan" are ordinary
+ *     Dutch passives, and each one is listed rather than ruled — widening the
+ *     rule to those prefixes would swallow "onderhoud", "overzicht",
+ *     "achtergrond" and "opdracht" along with them.
+ *  3. Participles that end in -aan, which no ending in the rule allows:
  *     "gedaan", "verstaan".
  *
  * Several of these are spelled exactly like their own infinitive ("vervangen",
@@ -54,6 +61,15 @@ return [
 
     // her- en er-
     'hernomen', 'herschreven', 'herzien', 'ervaren',
+
+    // Verbs whose prefix is written like a separable one but is not: they take
+    // no ge- either, so the shape rule cannot see them. "Het contract is
+    // ondertekend" and "aan de eisen is voldaan" are ordinary Dutch passives.
+    'aanvaard', 'achterhaald', 'omgeven', 'omschreven', 'onderbroken',
+    'ondergaan', 'onderscheiden', 'ondersteund', 'ondertekend', 'ondervonden',
+    'onderzocht', 'overhandigd', 'overtroffen', 'overwogen', 'overwonnen',
+    'voldaan', 'volbracht', 'voltooid', 'voorspeld', 'voorzien', 'weerlegd',
+    'weersproken',
 
     // Participles ending in -aan, which no shape rule ending allows.
     'gedaan', 'begaan',
