@@ -33,9 +33,13 @@
  * infinitive rarely stands directly behind "worden" or "zijn" to begin with.
  *
  * Participles that only ever build a perfect and never a passive ("gekomen",
- * "gebleven", "gestorven") are NOT here — they are a separate guard in
- * DutchPassiveVoiceDetector, and listing them as passive markers would be the
- * opposite of what they are.
+ * "gebleven", "gestorven", "verschenen", "bezweken") are NOT here — they are a
+ * separate guard in DutchPassiveVoiceDetector, and listing them as passive
+ * markers would be the opposite of what they are. Every entry below was checked
+ * against one question: can this verb take an object? A few are transitive in
+ * one reading and unaccusative in another ("bevroren", "verdronken"); those stay
+ * here, because the transitive passive they build is real ("de tegoeden werden
+ * bevroren") and a guard is all or nothing.
  *
  * Hand-compiled from the standard Dutch strong verb paradigms — see
  * docs/lang-data-sources.md.
@@ -45,18 +49,17 @@ return [
     // be-
     'bedrogen', 'bedwongen', 'begraven', 'behouden', 'bekeken', 'belogen',
     'beschoten', 'beschreven', 'besloten', 'besproken', 'bestreden', 'betrokken',
-    'bevangen', 'bevonden', 'bevroren', 'bewezen', 'bezeten', 'bezweken',
-    'begrepen',
+    'bevangen', 'bevonden', 'bevroren', 'bewezen', 'bezeten', 'begrepen',
 
     // ver-
     'verbannen', 'verboden', 'verbonden', 'verbroken', 'verdreven', 'verdronken',
     'vergeleken', 'vergeten', 'vergeven', 'verheven', 'verholpen', 'verkozen',
     'verkregen', 'verlaten', 'verloren', 'vernomen', 'verraden',
-    'verschenen', 'verschoven', 'verslagen', 'versleten', 'verstaan',
+    'verschoven', 'verslagen', 'versleten', 'verstaan',
     'vervangen', 'verweven', 'verworven', 'verzonden', 'verzonnen', 'verzwegen',
 
     // ont-
-    'ontbroken', 'ontgaan', 'ontheven', 'ontnomen', 'ontslagen', 'ontvangen',
+    'ontbroken', 'ontheven', 'ontnomen', 'ontslagen', 'ontvangen',
     'onthouden', 'ontworpen',
 
     // her- en er-

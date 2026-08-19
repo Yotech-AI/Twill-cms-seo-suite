@@ -117,6 +117,25 @@ guards rather than in `passive/non-participles.php`, because these words really
 are participles: the detector recognises them and then declines to count them,
 which is not the same as pretending they are nouns.
 
+The test for membership is whether the verb can take an object at all.
+*Verschijnen*, *bezwijken*, *aflopen*, *versinken*, *ausfallen* and *eintreffen*
+cannot, so "het artikel is verschenen" and "das Konzert ist ausgefallen" are
+perfects — and "is verschenen" is everyday publishing copy, exactly the register
+this package reads. Verbs that are unaccusative in one reading and transitive in
+another (*bevriezen*, *verdrinken*, *zerbrechen*) are deliberately **not** in
+the guard: the transitive passive they build is real ("de tegoeden werden
+bevroren", "die Vase wurde zerbrochen"), and a guard is all or nothing.
+
+Because the guard and `passive/irregular-participles.php` answer opposite
+questions, a word in both is a straight contradiction — one asserting the word
+marks a passive and the other that it never can. A unit test per language pins
+that the two sets do not overlap.
+
+Dutch and German disagree about *beginnen*, and correctly: Dutch takes *zijn*
+for it ("de film is begonnen"), so `begonnen` is in the Dutch guard, while
+German takes *haben* ("der Film hat begonnen"), so `begonnen` never follows a
+German passive auxiliary and stays an ordinary participle there.
+
 `sein` itself is deliberately **not** in the German auxiliary list, only its
 inflected forms. Bare "sein" is also the possessive determiner, and listing it
 would read "Sein Vater hat das Auto gekauft" as passive.
@@ -161,6 +180,24 @@ the others are: the infinitive ends in `-ieren`, not `-iert`.
 Dutch needs no equivalent rule, because its borrowed verbs keep the `ge-`
 ("georganiseerd", "gepubliceerd").
 
+### Dutch separable verbs are built on adjectives too
+
+Both packs take an optional separable prefix in front of the `ge-`, because that
+is where most real passives live: "aangepast", "opgelost", "uitgevoerd";
+"durchgeführt", "eingeführt", "abgeholt".
+
+Dutch needs more than the particles for that. It also builds separable verbs on
+an **adjective** — *goedkeuren*, *schoonmaken*, *vrijgeven*, *leegmaken*,
+*volboeken*, *kapotmaken*, *stopzetten* — and those behave identically: "de
+begroting is goed-ge-keurd", "de kamer werd schoon-ge-maakt". Leaving them out
+cost a class of everyday passive, so `goed`, `schoon`, `vrij`, `leeg`, `vol`,
+`kapot` and `stop` are prefixes as well.
+
+They are safe to add because the rule still demands a `ge-` and a stem of at
+least two letters behind the prefix, so an ordinary compound cannot reach it:
+"goederen", "vrijheid", "volgend" and "stopcontact" all fail on the part that
+follows, and each is pinned as a negative.
+
 ### Where a prefix only looks separable
 
 Both languages have verbs whose prefix is spelled exactly like a separable one
@@ -194,7 +231,7 @@ in web copy it is overwhelmingly the word "ago" ("twee jaar geleden"), while the
 passive of *lijden* is vanishingly rare — so it is listed as a non-participle.
 
 Tested in `Language/Nl/PassiveVoiceTest` and `Language/De/PassiveVoiceTest`,
-each of which pins both directions with around fifty curated sentences.
+each of which pins both directions with sixty-odd curated sentences.
 
 ## Counting syllables in Dutch and German
 

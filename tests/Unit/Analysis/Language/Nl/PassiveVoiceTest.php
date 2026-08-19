@@ -46,6 +46,14 @@ it('reads a dutch passive as passive', function (string $sentence) {
     'an inseparable over verb' => ['Dat voorstel werd zorgvuldig overwogen.'],
     'another inseparable onder verb' => ['De website wordt momenteel onderhouden.'],
 
+    // Separable verbs built on an adjective rather than on a particle. They
+    // put the ge- in exactly the same place, and they carry a great deal of
+    // ordinary Dutch web copy.
+    'a separable verb built on goed' => ['De begroting is goedgekeurd.'],
+    'a separable verb built on schoon' => ['De kamer werd schoongemaakt.'],
+    'a separable verb built on vrij' => ['De data zijn vrijgegeven.'],
+    'a separable verb built on stop' => ['Het project werd vorig jaar stopgezet.'],
+
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],
     'nothing was said' => ['Er werd niets gezegd over de vertraging.'],
@@ -82,6 +90,13 @@ it('leaves an active or merely descriptive dutch sentence alone', function (stri
     'a perfect of the verb to be' => ['Wij zijn hier vorig jaar geweest.'],
     'a participle that is really the word ago' => ['Dat was twee jaar geleden.'],
 
+    // Verbs that take no object at all, so the participle they build can only
+    // ever be a perfect. "Is verschenen" is everyday publishing copy.
+    'a perfect of a verb of appearing' => ['Het artikel is verschenen.'],
+    'a perfect of a verb of collapsing' => ['De brug is bezweken.'],
+    'a perfect of a verb of ending' => ['De actie is afgelopen.'],
+    'a perfect of a verb of worsening' => ['De situatie is verslechterd.'],
+
     // hebben marks the perfect, never the passive.
     'an active perfect with hebben' => ['Wij hebben het huis zelf gebouwd.'],
     'an active present tense' => ['Het team publiceert elk kwartaal een rapport.'],
@@ -93,6 +108,12 @@ it('leaves an active or merely descriptive dutch sentence alone', function (stri
 
     'a plain copula' => ['De winkel is open.'],
     'a plain state' => ['De kinderen waren de hele ochtend stil.'],
+    // The adjectival prefixes cannot reach an ordinary compound: what follows
+    // them still has to be a ge- plus a stem plus a participle ending.
+    'a noun that starts with an adjectival prefix' => ['Er zijn genoeg goederen op voorraad.'],
+    'an adjective that starts with an adjectival prefix' => ['De volgende week is hij vrij.'],
+    'another noun that starts with an adjectival prefix' => ['Het stopcontact is kapot.'],
+
     'a short word that only looks like a participle' => ['Jij bent de beste van de klas.'],
     'a comparative that starts like a participle' => ['Het huis is best groot.'],
 ]);

@@ -103,6 +103,13 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
      * They are a guard rather than a word list entry, because they really are
      * participles — the detector has to recognise them and then decline to
      * count them, which is not the same as pretending they are nouns.
+     *
+     * The test each entry had to pass is whether the verb can take an object at
+     * all. "Versinken", "ausfallen" and "eintreffen" cannot, so "das Schiff ist
+     * versunken" and "das Konzert ist ausgefallen" are perfects and not
+     * passives. Verbs that are unaccusative in one reading and transitive in
+     * another ("zerbrechen") are deliberately absent: the transitive passive
+     * they build is real, and a guard is all or nothing.
      */
     private const PERFECT_ONLY_PARTICIPLES = [
         'gewesen', 'geworden', 'geblieben', 'gekommen', 'angekommen',
@@ -111,7 +118,8 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
         'gereist', 'gestorben', 'gewachsen', 'geschehen', 'passiert',
         'gelungen', 'misslungen', 'aufgestanden', 'eingeschlafen', 'aufgewacht',
         'begegnet', 'gestiegen', 'gefallen', 'gesprungen', 'geschwommen',
-        'verschwunden', 'erschienen', 'entstanden', 'entgangen', 'gewandert',
+        'verschwunden', 'versunken', 'erschienen', 'entstanden', 'entgangen',
+        'ausgefallen', 'eingetroffen', 'eskaliert', 'gewandert',
         'geklettert', 'umgezogen', 'gelandet', 'geflohen', 'ertrunken',
         'zerfallen',
     ];

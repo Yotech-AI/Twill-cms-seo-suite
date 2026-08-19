@@ -2,8 +2,10 @@
 
 namespace TwillSeo\Tests\Unit\Analysis\Language\De;
 
+use ReflectionClass;
 use TwillSeo\Analysis\Language\Data\DataFileLoader;
 use TwillSeo\Analysis\Language\De\GermanLanguagePack;
+use TwillSeo\Analysis\Language\De\GermanPassiveVoiceDetector;
 use TwillSeo\Analysis\Language\LanguagePackRegistry;
 use TwillSeo\Analysis\Research\Support\KeyphraseMatcher;
 
@@ -105,4 +107,15 @@ it('never lists a german word as both a participle and not one', function () {
     );
 
     expect($overlap)->toBe([]);
+});
+
+it('never lists a german participle that the detector then refuses to count', function () {
+    // The two sets answer opposite questions — "this word marks a passive" and
+    // "this word can never mark one" — so a word in both is a straight
+    // contradiction. It is also the mistake that is easiest to make while
+    // compiling the strong verb paradigms, which is exactly why it is pinned:
+    // "versunken" sat on the participle list until this test was written.
+    $guard = (new ReflectionClass(GermanPassiveVoiceDetector::class))->getConstant('PERFECT_ONLY_PARTICIPLES');
+
+    expect(array_intersect(germanDataFile('passive/irregular-participles'), $guard))->toBe([]);
 });

@@ -36,9 +36,13 @@
  * to miss every real passive those verbs build.
  *
  * Participles that only ever form a perfect and never a passive ("gekommen",
- * "gefahren", "verschwunden", "entstanden") are NOT here — they are a separate
- * guard in GermanPassiveVoiceDetector, and listing them as passive markers
- * would be the opposite of what they are.
+ * "gefahren", "verschwunden", "entstanden", "versunken") are NOT here — they
+ * are a separate guard in GermanPassiveVoiceDetector, and listing them as
+ * passive markers would be the opposite of what they are. Every entry below was
+ * checked against one question: can this verb take an object? A few are
+ * transitive in one reading and unaccusative in another ("zerbrochen"); those
+ * stay here, because the transitive passive they build is real ("die Vase wurde
+ * zerbrochen") and a guard is all or nothing.
  *
  * Hand-compiled from the standard German strong verb paradigms — see
  * docs/lang-data-sources.md.
@@ -55,7 +59,7 @@ return [
     'verboten', 'verbunden', 'vergeben', 'vergessen', 'vergriffen', 'verglichen',
     'vergossen', 'verhalten', 'verlassen', 'verloren', 'verschlossen',
     'verschoben', 'verschrieben', 'versprochen', 'verstanden', 'verstoßen',
-    'versunken', 'vertragen', 'vertrieben', 'verwiesen', 'verworfen', 'verzogen',
+    'vertragen', 'vertrieben', 'verwiesen', 'verworfen', 'verzogen',
 
     // er-
     'erfahren', 'erfunden', 'ergeben', 'ergriffen', 'erhalten', 'erlassen',

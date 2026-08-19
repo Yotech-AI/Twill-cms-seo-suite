@@ -99,6 +99,12 @@ it('leaves an active or merely descriptive german sentence alone', function (str
     'a perfect of a verb of change' => ['Die Preise sind gestiegen.'],
     'a perfect of another verb of motion' => ['Sie ist um acht Uhr gekommen.'],
     'a perfect of a verb of pleasing' => ['Das Buch ist ihm sehr gefallen.'],
+    // Verbs that take no object at all, so the participle they build can only
+    // ever be a perfect.
+    'a perfect of a verb of sinking' => ['Das Schiff ist versunken.'],
+    'a perfect of a verb of being cancelled' => ['Das Konzert ist ausgefallen.'],
+    'a perfect of a verb of arriving' => ['Die Ware ist gestern eingetroffen.'],
+    'a perfect of a borrowed verb in -iert' => ['Die Lage ist eskaliert.'],
 
     // haben marks the perfect, never the passive.
     'an active perfect with haben' => ['Wir haben das Haus selbst gebaut.'],

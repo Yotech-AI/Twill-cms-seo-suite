@@ -54,15 +54,23 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      * this way, so a rule that only looked at the start of the word would miss
      * them all.
      *
+     * Not all of them are particles. Dutch also builds separable verbs on an
+     * adjective — goedkeuren, schoonmaken, vrijgeven, leegmaken, stopzetten —
+     * and those behave exactly the same way: "de begroting is goed-ge-keurd",
+     * "de kamer werd schoon-ge-maakt". They are safe to list because the rule
+     * still demands a ge- and a stem of at least two letters behind the prefix,
+     * so an ordinary compound noun cannot reach it: "goederen", "vrijheid",
+     * "volgend" and "stopcontact" all fail on the part that follows.
+     *
      * "mis" is deliberately absent: it would read "misverstand" as a
      * participle, and "mislukt" — the word it would have bought — never forms
      * a passive anyway.
      */
     private const SEPARABLE_PREFIXES = [
-        'aan', 'achter', 'af', 'bij', 'binnen', 'buiten', 'dicht', 'door', 'in',
-        'klaar', 'los', 'mee', 'na', 'neer', 'om', 'onder', 'op', 'open', 'over',
-        'samen', 'tegen', 'terug', 'thuis', 'toe', 'uit', 'vast', 'voor', 'weer',
-        'weg',
+        'aan', 'achter', 'af', 'bij', 'binnen', 'buiten', 'dicht', 'door', 'goed',
+        'in', 'kapot', 'klaar', 'leeg', 'los', 'mee', 'na', 'neer', 'om', 'onder',
+        'op', 'open', 'over', 'samen', 'schoon', 'stop', 'tegen', 'terug', 'thuis',
+        'toe', 'uit', 'vast', 'vol', 'voor', 'vrij', 'weer', 'weg',
     ];
 
     /** The prefixes that replace the ge- rather than sit in front of it. */
@@ -97,13 +105,23 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      * They are a guard rather than a word list entry, because they really are
      * participles — the detector has to recognise them and then decline to
      * count them, which is not the same as pretending they are nouns.
+     *
+     * The test each entry had to pass is whether the verb can take an object at
+     * all. "Verschijnen", "bezwijken" and "ontgaan" cannot, so "het artikel is
+     * verschenen" is a perfect and not a passive — and "is verschenen" is
+     * everyday publishing copy, exactly the register this package reads. Verbs
+     * that are unaccusative in one reading and transitive in another
+     * ("bevriezen", "verdrinken") are deliberately absent: the transitive
+     * passive they build is real, and a guard is all or nothing.
      */
     private const PERFECT_ONLY_PARTICIPLES = [
         'geweest', 'gebleven', 'geworden', 'gekomen', 'aangekomen', 'teruggekomen',
-        'thuisgekomen', 'binnengekomen', 'gegaan', 'weggegaan', 'uitgegaan',
-        'gevallen', 'gestorven', 'overleden', 'vertrokken', 'gearriveerd',
-        'gebeurd', 'ontstaan', 'verdwenen', 'gebleken', 'geslaagd', 'gestegen',
-        'gedaald', 'gegroeid', 'begonnen', 'opgestaan', 'gevlucht', 'geschrokken',
+        'thuisgekomen', 'binnengekomen', 'opgekomen', 'gegaan', 'weggegaan',
+        'uitgegaan', 'afgelopen', 'gevallen', 'gestorven', 'overleden',
+        'vertrokken', 'gearriveerd', 'gebeurd', 'ontstaan', 'ontgaan',
+        'verdwenen', 'verschenen', 'bezweken', 'gebleken', 'geslaagd',
+        'gestegen', 'gedaald', 'gegroeid', 'verslechterd', 'omgeslagen',
+        'begonnen', 'opgestaan', 'gevlucht', 'geschrokken', 'uitgegleden',
         'gereisd', 'gelukt', 'mislukt', 'verhuisd', 'gezakt', 'gevlogen',
     ];
 
