@@ -37,5 +37,24 @@ return [
         'interieur' => 4,
         'ingenieur' => 4,
         'ingenieurs' => 4,
+
+        // English words Dutch has taken whole and still says the English way.
+        // No spelling rule can help here — Dutch reads "ea" as two beats and
+        // an English loan reads it as one — and these particular words turn up
+        // in almost every page a CMS holds, so they are worth the entries.
+        // Compounds built on them ("klantenservice") are not covered: the map
+        // is looked up on the exact word.
+        'website' => 2,
+        'websites' => 2,
+        'online' => 2,
+        'team' => 1,
+        'teams' => 1,
+        'service' => 2,
+        'services' => 2,
+        'software' => 2,
+        'hardware' => 2,
+        'update' => 2,
+        'updates' => 2,
+        'deadline' => 2,
     ],
 ];

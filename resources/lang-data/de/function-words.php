@@ -121,13 +121,17 @@ return [
 
     // Adverbs of time and frequency.
     'immer', 'nie', 'niemals', 'manchmal', 'oft', 'häufig', 'selten', 'meistens',
-    'ständig', 'jetzt', 'nun', 'damals', 'später', 'früher', 'zuerst', 'gerade',
+    'ständig', 'jetzt', 'nun', 'damals', 'später', 'früher', 'zuerst',
     'schon', 'noch', 'wieder', 'bald', 'heute', 'gestern', 'morgen',
     'sofort', 'endlich', 'bereits', 'stets',
 
     // Adverbs of stance, focus and negation. "da" is already listed above as
     // the subordinating conjunction it also is.
+    // "sicher", "natürlich" and "gerade" are deliberately absent: each is an
+    // adverb in one reading and an adjective an author might really be
+    // targeting in another (sichere Verbindung, natürlich abnehmen, gerade
+    // Linie).
     'nicht', 'nein', 'ja', 'auch', 'sogar', 'nur', 'bloß', 'eben', 'halt',
-    'wohl', 'vielleicht', 'sicher', 'wirklich', 'überhaupt', 'eigentlich',
-    'natürlich', 'gern', 'her', 'hin', 'hier', 'dort',
+    'wohl', 'vielleicht', 'wirklich', 'überhaupt', 'eigentlich',
+    'gern', 'her', 'hin', 'hier', 'dort',
 ];

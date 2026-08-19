@@ -215,9 +215,15 @@ all. In particular the whole German `-tion` family is handled by rule rather
 than by enumeration, which is the difference between a counter that stays right
 and one that rots.
 
-The deviation lists are correspondingly small, and hold only the opposite case:
-a pair the language really does spell as one sound, in a word where it happens
-to be two — "mu-se-um", "se-ri-eus", "I-de-en", "Fa-mi-li-en".
+The deviation lists are correspondingly small, and hold two things. The opposite
+case — a pair the language really does spell as one sound, in a word where it
+happens to be two: "mu-se-um", "se-ri-eus", "I-de-en", "Fa-mi-li-en". And the
+English words both languages have taken whole and still say the English way:
+"website", "online", "team", "software" are one or two beats, where the Dutch
+and German reading of their vowels would give three. No spelling rule can tell
+a loanword from a native one, and those particular words appear on nearly every
+page a CMS holds. Compounds built on them ("klantenservice", "Kundenservice")
+are not covered, because the map is looked up on the exact word.
 
 ### Dutch reads the diaeresis as the syllable break it is
 

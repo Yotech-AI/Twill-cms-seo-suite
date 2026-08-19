@@ -66,7 +66,10 @@ function dutchSyllableFixture(): array
 
         // The deviation list: the vowel groups are right about the spelling and
         // wrong about the word.
-        'museum' => 3, 'jubileum' => 4,
+        'museum' => 3, 'jubileum' => 4, 'serieus' => 3, 'ingenieur' => 4,
+
+        // English words Dutch says the English way.
+        'website' => 2, 'online' => 2, 'team' => 1, 'software' => 2,
     ];
 }
 

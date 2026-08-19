@@ -65,11 +65,11 @@ return [
     // Verbs whose prefix is written like a separable one but is not: they take
     // no ge- either, so the shape rule cannot see them. "Het contract is
     // ondertekend" and "aan de eisen is voldaan" are ordinary Dutch passives.
-    'aanvaard', 'achterhaald', 'omgeven', 'omschreven', 'onderbroken',
-    'ondergaan', 'onderscheiden', 'ondersteund', 'ondertekend', 'ondervonden',
-    'onderzocht', 'overhandigd', 'overtroffen', 'overwogen', 'overwonnen',
-    'voldaan', 'volbracht', 'voltooid', 'voorspeld', 'voorzien', 'weerlegd',
-    'weersproken',
+    'aanvaard', 'achterhaald', 'doorstaan', 'omgeven', 'omschreven',
+    'onderbroken', 'ondergaan', 'onderhouden', 'onderscheiden', 'ondersteund',
+    'ondertekend', 'ondervonden', 'onderzocht', 'overhandigd', 'overtroffen',
+    'overwogen', 'overwonnen', 'voldaan', 'volbracht', 'voltooid', 'voorspeld',
+    'voorzien', 'weerlegd', 'weersproken',
 
     // Participles ending in -aan, which no shape rule ending allows.
     'gedaan', 'begaan',

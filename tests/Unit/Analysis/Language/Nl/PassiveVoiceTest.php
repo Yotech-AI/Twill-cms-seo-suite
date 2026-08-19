@@ -44,6 +44,7 @@ it('reads a dutch passive as passive', function (string $sentence) {
     'an inseparable onder verb' => ['Het contract is door beide partijen ondertekend.'],
     'an inseparable vol verb' => ['Aan alle eisen is voldaan.'],
     'an inseparable over verb' => ['Dat voorstel werd zorgvuldig overwogen.'],
+    'another inseparable onder verb' => ['De website wordt momenteel onderhouden.'],
 
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],

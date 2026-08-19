@@ -82,7 +82,10 @@ return [
 
     // Quantifiers.
     'veel', 'weinig', 'meer', 'meest', 'meeste', 'minder', 'minst', 'minste',
-    'genoeg', 'voldoende', 'zoveel', 'evenveel', 'paar', 'stuk', 'aantal',
+    // "paar", "stuk" and "aantal" are deliberately absent: each is a quantifier
+    // in one reading and a noun in another (paar schoenen, stuk taart, aantal
+    // bezoekers), and stripping them would quietly rewrite the keyphrase.
+    'genoeg', 'voldoende', 'zoveel', 'evenveel',
 
     // Cardinals to twenty and the round numbers above them. "een" is already
     // listed as the indefinite article; only the accented numeral is added here.

@@ -71,6 +71,9 @@ function germanSyllableFixture(): array
         'Ferien' => 3, 'Familien' => 4, 'Linien' => 3, 'Studien' => 3,
         'Serien' => 3, 'Kopien' => 3, 'Aktien' => 3, 'Italien' => 4,
         'Spanien' => 3, 'Prinzipien' => 4, 'Kategorien' => 5,
+
+        // English words German says the English way.
+        'Website' => 2, 'online' => 2, 'Team' => 1, 'Software' => 2,
     ];
 }
 
