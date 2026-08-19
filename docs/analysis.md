@@ -126,6 +126,27 @@ lets *ein Ticket eskalieren* take an object, and ITSM copy says so daily), and
 suppressing it because *eskalieren* also has an intransitive perfect would be
 the guard answering a question nobody asked.
 
+**The pairing is per participle, not per clause.** "Which auxiliary" is only a
+meaningful question about a particular verb phrase, so each participle is paired
+with the nearest auxiliary in its clause and that one decides. Asking it once
+for the whole clause instead — does this clause contain a worden form anywhere?
+— lets an unrelated token resurrect a guarded participle: "het bedrijf is
+gegroeid om marktleider te worden" would pair the *worden* of a purpose clause
+with a *gegroeid* that plainly belongs to *is*, and report a perfect as a
+passive. German has the same shape, usually hidden behind the comma it writes
+before "um … zu" and fully exposed the moment headline or bullet copy drops it.
+
+Nearest, rather than a direction, because both languages put the finite verb
+before its participle in a main clause and after it in a subordinate one:
+distance says more than direction does. Ties go to the auxiliary in front.
+
+A `te`/`zu`-marked infinitive is excluded from pairing altogether. That is a
+fact about the grammar rather than a patch for the example above: an infinitive
+behind *te* or *zu* heads its own phrase and governs nothing outside it. The
+exclusion is deliberately narrow — "het huis zal worden verkocht" and "das Haus
+soll verkauft werden" have a bare infinitive with no marker in front of it, and
+both stay passive.
+
 The membership test is therefore narrower than "can this verb take an object":
 it is whether the verb has a perfect with zijn/sein that would otherwise read as
 a state passive. *Verschijnen*, *bezwijken*, *aflopen*, *versinken*, *ausfallen*

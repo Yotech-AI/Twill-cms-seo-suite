@@ -53,6 +53,10 @@ it('reads a german passive as passive', function (string $sentence) {
     // this is the everyday shape of it in business German.
     'an intransitive verb that does take an object' => ['Das Problem wurde eskaliert.'],
     'the same verb in the plural' => ['Die Tickets werden automatisch eskaliert.'],
+    // The mirror of the negative below: two auxiliaries of different kinds in
+    // one clause, and each participle pairs with the nearer one. "gestiegen"
+    // stays a perfect; "unterschrieben" is the passive that makes this one.
+    'two auxiliaries, each with its own participle' => ['Die Preise sind gestiegen seit der Vertrag unterschrieben wurde.'],
 
     // The Zustandspassiv: sein plus a participle, describing the state a deed
     // left behind.
@@ -111,6 +115,15 @@ it('leaves an active or merely descriptive german sentence alone', function (str
     'a perfect of a verb of being cancelled' => ['Das Konzert ist ausgefallen.'],
     'a perfect of a verb of arriving' => ['Die Ware ist gestern eingetroffen.'],
     'a perfect of a borrowed verb in -iert' => ['Die Lage ist eskaliert.'],
+
+    // A werden form that belongs to a purpose clause governs nothing outside
+    // it. The comma German would normally write before "um ... zu" is left out
+    // on purpose: headline and bullet copy drops it, and that is where this
+    // has to hold.
+    'a perfect in front of a zu-marked infinitive' => ['Die Firma ist gewachsen um Marktführer zu werden.'],
+    // Both kinds of auxiliary in one clause: "gestiegen" pairs with the "sind"
+    // beside it, not with the "wurde" four words away.
+    'a perfect that keeps its own auxiliary' => ['Die Preise sind gestiegen seit er Direktor wurde.'],
 
     // haben marks the perfect, never the passive.
     'an active perfect with haben' => ['Wir haben das Haus selbst gebaut.'],

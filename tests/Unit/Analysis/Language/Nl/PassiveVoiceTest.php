@@ -60,6 +60,10 @@ it('reads a dutch passive as passive', function (string $sentence) {
     // A worden form has no perfect to be confused with, so a verb that is
     // usually intransitive still builds a real passive behind it.
     'an intransitive verb that does take an object' => ['De bladzijde werd langzaam omgeslagen.'],
+    // The mirror of the negative above: two auxiliaries of different kinds in
+    // one clause, and each participle pairs with the nearer one. "gestegen"
+    // stays a perfect; "getekend" is the passive that makes this sentence one.
+    'two auxiliaries, each with its own participle' => ['De prijzen zijn gestegen sinds het contract werd getekend.'],
 
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],
@@ -104,6 +108,13 @@ it('leaves an active or merely descriptive dutch sentence alone', function (stri
     'a perfect of a verb of ending' => ['De actie is afgelopen.'],
     'a perfect of a verb of worsening' => ['De situatie is verslechterd.'],
 
+    // A worden form that belongs to a purpose clause governs nothing outside
+    // it, so it cannot turn the perfect in front of it into a passive.
+    'a perfect in front of a te-marked infinitive' => ['Het bedrijf is gegroeid om marktleider te worden.'],
+    // Both kinds of auxiliary in one clause: "gedaald" pairs with the "is"
+    // beside it, not with the "werd" four words away.
+    'a perfect that keeps its own auxiliary' => ['De omzet is gedaald sinds hij directeur werd.'],
+
     // hebben marks the perfect, never the passive.
     'an active perfect with hebben' => ['Wij hebben het huis zelf gebouwd.'],
     'an active present tense' => ['Het team publiceert elk kwartaal een rapport.'],
@@ -122,6 +133,7 @@ it('leaves an active or merely descriptive dutch sentence alone', function (stri
     'another noun that starts with an adjectival prefix' => ['Het stopcontact is kapot.'],
     'an abstract noun in heid behind a prefix' => ['De vrijheid van meningsuiting is een groot goed.'],
     'another abstract noun in heid behind a prefix' => ['Schoonheid is voor iedereen anders.'],
+    'an abstract noun in te behind a prefix' => ['De leegte in de zaal was pijnlijk.'],
     'a participle shaped adjective behind vol' => ['Zijn zoon is inmiddels volwassen.'],
     // The two compounds that really do reach the shape: a prefix plus a ge-
     // noun or adjective, spelled exactly like a separable participle.

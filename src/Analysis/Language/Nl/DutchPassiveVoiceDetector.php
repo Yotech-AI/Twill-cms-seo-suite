@@ -94,6 +94,13 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      */
     private const PROCESS_AUXILIARIES = ['word', 'wordt', 'worden', 'werd', 'werden', 'geworden'];
 
+    /**
+     * The particle that marks what follows as an infinitive rather than a
+     * finite verb. "Te worden" heads a phrase of its own and governs nothing
+     * outside it.
+     */
+    private const INFINITIVE_MARKER = 'te';
+
     /** A participle never follows one of these; a noun does. */
     private const DETERMINERS = [
         'de', 'het', 'een', 'deze', 'die', 'dit', 'dat', 'mijn', 'jouw', 'uw',
@@ -187,41 +194,107 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
     }
 
     /**
-     * Whether one clause is passive, which depends on *which* auxiliary it
-     * carries.
+     * Whether one clause is passive.
      *
-     * A worden form only ever builds a passive, so any participle in its clause
-     * is one — including the participle of a verb that is usually intransitive
-     * ("de bladzijde werd omgeslagen", "de winkels werden afgelopen").
+     * The question is asked once per participle rather than once per clause,
+     * because which auxiliary a participle belongs to decides how it reads. A
+     * worden form only ever builds a passive, so the participle it governs is
+     * one even when the verb is usually intransitive ("de bladzijde werd
+     * omgeslagen"). A zijn form is the ambiguous one — it builds the state
+     * passive *and* the perfect of every verb of motion and change — so only
+     * there does the perfect-only guard apply.
      *
-     * A zijn form is the ambiguous one: it builds the state passive *and* the
-     * perfect of every verb of motion and change. Only there does the
-     * perfect-only guard apply.
+     * Clause-wide bookkeeping cannot express that. "Het bedrijf is gegroeid om
+     * marktleider te worden" would pair the "worden" of a purpose clause with a
+     * "gegroeid" that plainly belongs to "is", and report a perfect as a
+     * passive.
      *
      * @param  list<string>  $tokens
      */
     private function clauseIsPassive(array $tokens): bool
     {
-        $process = false;
-        $state = false;
-        $participle = false;
-        $perfectOnly = false;
+        $auxiliaries = $this->pairableAuxiliaries($tokens);
 
-        foreach ($tokens as $index => $token) {
-            if ($this->auxiliaries->contains($token)) {
-                in_array($token, self::PROCESS_AUXILIARIES, true) ? $process = true : $state = true;
-
-                continue;
-            }
-
-            if (! $this->isParticiple($token) || self::isNounOrAdjectiveHere($tokens, $index)) {
-                continue;
-            }
-
-            in_array($token, self::PERFECT_ONLY_PARTICIPLES, true) ? $perfectOnly = true : $participle = true;
+        if ($auxiliaries === []) {
+            return false;
         }
 
-        return ($process && ($participle || $perfectOnly)) || ($state && $participle);
+        foreach ($tokens as $index => $token) {
+            if ($this->auxiliaries->contains($token) || ! $this->isParticiple($token)) {
+                continue;
+            }
+
+            if (self::isNounOrAdjectiveHere($tokens, $index)) {
+                continue;
+            }
+
+            if (! in_array($token, self::PERFECT_ONLY_PARTICIPLES, true) || self::governedByProcess($auxiliaries, $index)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The auxiliaries a participle in this clause may pair with, as position =>
+     * whether it is a worden form.
+     *
+     * A te-marked infinitive is deliberately left out. "Om marktleider te
+     * worden" is a purpose clause: an infinitive behind "te" heads its own
+     * phrase and cannot govern a participle sitting outside it, so it is not an
+     * auxiliary for this purpose at all.
+     *
+     * @param  list<string>  $tokens
+     * @return array<int,bool>
+     */
+    private function pairableAuxiliaries(array $tokens): array
+    {
+        $auxiliaries = [];
+
+        foreach ($tokens as $index => $token) {
+            if (! $this->auxiliaries->contains($token)) {
+                continue;
+            }
+
+            if ($index > 0 && $tokens[$index - 1] === self::INFINITIVE_MARKER) {
+                continue;
+            }
+
+            $auxiliaries[$index] = in_array($token, self::PROCESS_AUXILIARIES, true);
+        }
+
+        return $auxiliaries;
+    }
+
+    /**
+     * Whether the auxiliary that governs the participle at $index is a worden
+     * form.
+     *
+     * The governing auxiliary is taken to be the nearest one in the clause,
+     * which is the best a detector can do without parsing: Dutch puts the
+     * finite verb before its participle in a main clause and after it in a
+     * subordinate one, so distance says more than direction does. Ties go to
+     * the auxiliary in front, which is where a main clause puts it — the
+     * ascending scan below settles that on its own.
+     *
+     * @param  array<int,bool>  $auxiliaries
+     */
+    private static function governedByProcess(array $auxiliaries, int $index): bool
+    {
+        $governing = false;
+        $nearest = PHP_INT_MAX;
+
+        foreach ($auxiliaries as $position => $isProcess) {
+            $distance = abs($position - $index);
+
+            if ($distance < $nearest) {
+                $nearest = $distance;
+                $governing = $isProcess;
+            }
+        }
+
+        return $governing;
     }
 
     private function isParticiple(string $token): bool

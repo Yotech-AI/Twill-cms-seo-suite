@@ -114,9 +114,13 @@ not have to decide:
   count them, which is not the same as pretending they are nouns. The guard
   applies only behind a zijn/sein auxiliary — `worden`/`werden` has no perfect
   to suppress — which is why each detector also carries the split of its own
-  auxiliary list into the worden/werden forms (`PROCESS_AUXILIARIES`). A unit
-  test pins that no word ever sits in both this guard and the
-  irregular-participle list: the two answer opposite questions, so a word in
-  both is a straight contradiction.
+  auxiliary list into the worden/werden forms (`PROCESS_AUXILIARIES`), and
+  pairs each participle with the nearest auxiliary rather than asking the
+  question once for a whole clause. A unit test pins that no word ever sits in
+  both this guard and the irregular-participle list: the two answer opposite
+  questions, so a word in both is a straight contradiction;
+- the particle that marks an infinitive (`te`, `zu`). An infinitive behind it
+  heads its own phrase, so it is never an auxiliary a participle elsewhere in
+  the clause can pair with.
 
 Both are explained at length in `docs/analysis.md`.
