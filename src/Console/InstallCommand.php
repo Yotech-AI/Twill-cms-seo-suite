@@ -22,13 +22,21 @@ class InstallCommand extends Command
 
         $this->call('vendor:publish', ['--tag' => 'twill-seo-config']);
 
+        $adminPath = rtrim(ltrim((string) config('twill.admin_app_path', 'admin'), '/'), '/');
+
         $this->newLine();
         $this->line('Remaining steps:');
-        $this->line('  1. Register your models in config/twill-seo.php.');
-        $this->line('  2. Add the SEO traits to each registered model.');
-        $this->line("  3. Add SeoFields::fieldset() to each model's form.");
+        $this->line('  1. Register each model to manage in the `models` key of config/twill-seo.php.');
+        $this->line('  2. Add TwillSeo\\Models\\Behaviors\\HasSeo to each registered model, and');
+        $this->line('     TwillSeo\\Repositories\\Behaviors\\HandleSeo to its repository (after HandleTranslations,');
+        $this->line('     if the repository uses it — see HandleSeo\'s own doc comment for why the order matters).');
+        $this->line("  3. Add TwillSeo\\Services\\Form\\SeoFields::fieldset() to each model's form fields.");
         $this->line('  4. Run php artisan migrate.');
-        $this->line('  5. Add the SEO head component to your front-end layout.');
+        $this->line('  5. Add <x-twill-seo::head /> to your public front-end layout.');
+        $this->line("  6. Visit /{$adminPath}/seo to review settings — site identity, content-type templates,");
+        $this->line('     features and advanced options.');
+        $this->newLine();
+        $this->line('Run php artisan twill-seo:doctor at any point to check the install.');
 
         return self::SUCCESS;
     }
