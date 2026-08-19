@@ -2,6 +2,7 @@
 
 use A17\Twill\Models\Media;
 use TwillSeo\Tests\Fixtures\Models\BrokenTranslatedAttributesArticle;
+use TwillSeo\Tests\Fixtures\Models\UninitializedTranslatedAttributesArticle;
 
 it('passes on the healthy fixture setup (articles + pages, both fully wired)', function () {
     $this->artisan('twill-seo:doctor')->assertExitCode(0);
@@ -65,6 +66,25 @@ it('fails with a clear line when a translatedAttributes entry collides with a se
     $this->artisan('twill-seo:doctor')
         ->expectsOutputToContain('translatedAttributes collides with a reserved seo_* field name: seo_title')
         ->assertExitCode(1);
+});
+
+it('warns rather than crashes when translatedAttributes is a typed property that was never initialized', function () {
+    // A merely protected/private (untyped) declaration does NOT hit this
+    // path at all — Eloquent's own __get() intercepts that read and
+    // returns null, exactly like BrokenTranslatedAttributesArticle's own
+    // healthy sibling checks would see for a model with no collision. Only
+    // a typed, defaultless declaration throws on read (verified
+    // empirically), which is what this fixture pins.
+    config(['twill-seo.models' => [
+        'broken' => [
+            'model' => UninitializedTranslatedAttributesArticle::class,
+            'title_attribute' => 'title',
+        ],
+    ]]);
+
+    $this->artisan('twill-seo:doctor')
+        ->expectsOutputToContain('Could not read translatedAttributes')
+        ->assertExitCode(0);
 });
 
 it('warns when a registered model has no rows yet, rather than failing', function () {

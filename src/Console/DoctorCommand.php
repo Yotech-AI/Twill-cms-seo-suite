@@ -206,7 +206,16 @@ class DoctorCommand extends Command
         $this->record('Registered models', self::STATUS_OK, count($all).' registered: '.implode(', ', array_keys($all)).'.');
 
         foreach ($all as $key => $config) {
-            $this->checkOneModel($key, $config);
+            // A backstop around each model's whole set of checks, on top of
+            // (not instead of) the specific try/catches already inside them:
+            // one unanticipated throw for one badly-behaved model must
+            // never abort the diagnostic run for every other registered
+            // model, or the doctor becomes the second problem.
+            try {
+                $this->checkOneModel($key, $config);
+            } catch (Throwable $e) {
+                $this->record("Model: {$key}", self::STATUS_FAIL, 'An unexpected error occurred while checking this model: '.$e->getMessage());
+            }
         }
     }
 
@@ -309,17 +318,25 @@ class DoctorCommand extends Command
      */
     private function checkTranslatedAttributes(string $key, string $modelClass): void
     {
+        // One try/catch around both instantiation AND the property read.
+        // A merely protected/private $translatedAttributes is harmless —
+        // Eloquent's own __get() intercepts the "inaccessible property"
+        // read and returns null, same as if it were never declared at all
+        // (verified empirically) — but a TYPED, uninitialized declaration
+        // (`public array $translatedAttributes;` with no default, plausible
+        // in a host model written the modern typed-property way) throws a
+        // plain Error reading it from out here, same severity as a
+        // constructor that throws.
         try {
             $instance = new $modelClass;
+            $translated = property_exists($instance, 'translatedAttributes') && is_array($instance->translatedAttributes)
+                ? array_map(strval(...), $instance->translatedAttributes)
+                : [];
         } catch (Throwable $e) {
-            $this->record("Translated attributes: {$key}", self::STATUS_WARN, "Could not instantiate {$modelClass}: {$e->getMessage()}");
+            $this->record("Translated attributes: {$key}", self::STATUS_WARN, "Could not read translatedAttributes on {$modelClass}: {$e->getMessage()}");
 
             return;
         }
-
-        $translated = property_exists($instance, 'translatedAttributes') && is_array($instance->translatedAttributes)
-            ? array_map(strval(...), $instance->translatedAttributes)
-            : [];
 
         $collisions = array_values(array_intersect($translated, $this->reservedSeoFieldNames()));
 
