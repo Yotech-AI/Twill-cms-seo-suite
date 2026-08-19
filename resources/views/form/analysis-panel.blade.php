@@ -39,17 +39,16 @@
 
             $twillSeoModelTitle = \TwillSeo\Support\TranslatedAttribute::get($item, $twillSeoTitleAttribute, $twillSeoLocale);
 
-            // Same defensive pattern as PaperFactory::resolvePermalink(): a
-            // host model without getFullUrl(), or one whose implementation
-            // throws, degrades to a null URL rather than breaking the panel.
-            $twillSeoModelUrl = null;
-            if (method_exists($item, 'getFullUrl')) {
-                try {
-                    $twillSeoModelUrl = $item->getFullUrl();
-                } catch (\Throwable $twillSeoUrlException) {
-                    $twillSeoModelUrl = null;
-                }
-            }
+            // The same UrlResolver cascade every other Task 7 consumer uses
+            // (canonical link, og:url, hreflang alternates) — a registry
+            // `url` callback first, then SeoLinkable, then Twill's own
+            // getFullUrl() — rather than a raw getFullUrl() call that a
+            // configured registry callback would have no effect on and that
+            // would surface Twill's own unresolved '#' sentinel as if it
+            // were a real snippet-preview URL. UrlResolver::resolve() is
+            // already exception-safe end to end, so there is no try/catch
+            // needed here the way a raw getFullUrl() call would want one.
+            $twillSeoModelUrl = app(\TwillSeo\Services\Resolvers\UrlResolver::class)->resolve($item, $twillSeoLocale);
 
             // Per-locale cached scores (ScoreCache's own last write) so the
             // panel has something to show before its first live response —

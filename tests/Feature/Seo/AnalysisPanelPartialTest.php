@@ -56,6 +56,33 @@ it('renders the mount div with a full config for a saved, registered article', f
         ->and($config['initial'])->toHaveKey('nl');
 });
 
+it('nulls the model url rather than showing Twill\'s own unresolved "#" sentinel', function () {
+    // The bare fixture Article has no capsule/route wired up in this
+    // harness and no registry `url` callback configured, so Twill's own
+    // getFullUrl() returns its literal '#' placeholder (see UrlResolver's
+    // own doc comment on that sentinel) — the panel must show that as "no
+    // URL" (null), not forward '#' as if it were a real snippet-preview URL.
+    $article = (new ArticleRepository(new Article))->create(['title' => ['en' => 'Test Article']]);
+
+    $config = decodeMountConfig(renderAnalysisPanel($article->fresh()));
+
+    expect($config['model']['url'])->toBeNull();
+});
+
+it('resolves the model url through the registry url callback, not a raw getFullUrl() call', function () {
+    // Proves the panel goes through the same UrlResolver cascade every
+    // other consumer uses: a raw getFullUrl() call has no way to see a
+    // registry `url` override at all, so this would still be null/'#' if
+    // the fix regressed back to that.
+    config(['twill-seo.models.articles.url' => fn (Article $m, string $l): string => "https://example.test/{$l}/articles/{$m->id}"]);
+
+    $article = (new ArticleRepository(new Article))->create(['title' => ['en' => 'Test Article']]);
+
+    $config = decodeMountConfig(renderAnalysisPanel($article->fresh()));
+
+    expect($config['model']['url'])->toBe('https://example.test/'.app()->getLocale()."/articles/{$article->id}");
+});
+
 it('passes a cached not-available (0) readability score through the config unmolested, never coerced or hidden', function () {
     // A title with no body content is the ORDINARY state of a freshly
     // created item, not a rare edge case — and it is exactly what makes
