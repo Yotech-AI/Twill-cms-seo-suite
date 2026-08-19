@@ -3,6 +3,7 @@
 namespace TwillSeo\Analysis\Language;
 
 use TwillSeo\Analysis\Language\En\EnglishLanguagePack;
+use TwillSeo\Analysis\Language\Nl\DutchLanguagePack;
 
 /**
  * Resolves a paper's locale to the pack that analyses it. Locales arrive in
@@ -28,6 +29,7 @@ final class LanguagePackRegistry
     {
         $registry = new self;
         $registry->register(new EnglishLanguagePack);
+        $registry->register(new DutchLanguagePack);
 
         return $registry;
     }

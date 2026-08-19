@@ -38,7 +38,9 @@ it('is what the default registry hands out for english', function (string $local
 })->with(['en', 'en_GB', 'en-US', 'EN']);
 
 it('still falls back to the generic pack for an unknown language', function () {
-    expect(LanguagePackRegistry::withDefaults()->forLocale('nl_NL')->supportsFullReadability())->toBeFalse();
+    // French, because the package ships packs for English, Dutch and German
+    // and this test is about the languages it does not know.
+    expect(LanguagePackRegistry::withDefaults()->forLocale('fr_FR')->supportsFullReadability())->toBeFalse();
 });
 
 it('keeps an abbreviation inside its sentence', function (string $text, array $sentences) {
