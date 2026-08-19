@@ -1,5 +1,6 @@
 <?php
 
+use A17\Twill\Models\Media;
 use Illuminate\Support\Facades\Route;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Tests\Fixtures\Models\Article;
@@ -68,6 +69,31 @@ it('round-trips the general section through PUT, persisting via SeoSetting::curr
         'entity_name' => 'Jane Doe',
         'social_profiles' => ['https://twitter.com/acme', 'https://facebook.com/acme'],
     ]);
+});
+
+it('returns a media summary for the stored logo and default share ids, on both GET and PUT', function () {
+    $logo = Media::query()->create(['uuid' => 'logo.jpg', 'filename' => 'logo.jpg', 'width' => 200, 'height' => 200]);
+    $share = Media::query()->create(['uuid' => 'share.jpg', 'filename' => 'share.jpg', 'width' => 1200, 'height' => 630]);
+
+    $this->actingAsTwillAdmin();
+
+    $putResponse = $this->putJson(twillSeoUrl('settings'), [
+        'general' => ['logo_media_id' => $logo->id, 'default_share_media_id' => $share->id],
+    ])->assertOk();
+
+    $putResponse->assertJsonPath('media.logo.id', $logo->id)
+        ->assertJsonPath('media.logo.name', 'logo.jpg')
+        ->assertJsonPath('media.default_share.id', $share->id)
+        ->assertJsonPath('media.default_share.name', 'share.jpg');
+
+    expect($putResponse->json('media.logo.thumbnail'))->toBeString()->toContain($logo->uuid);
+
+    $getResponse = $this->getJson(twillSeoUrl('settings'))->assertOk();
+
+    $getResponse->assertJsonPath('media.logo.id', $logo->id)
+        ->assertJsonPath('media.default_share.id', $share->id)
+        ->assertJsonPath('sections.general.logo_media_id', $logo->id)
+        ->assertJsonPath('sections.general.default_share_media_id', $share->id);
 });
 
 it('round-trips the content_types section through PUT', function () {
