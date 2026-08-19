@@ -1,6 +1,7 @@
 <?php
 
 use A17\Twill\Models\Media;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Tests\Fixtures\Models\Article;
@@ -160,6 +161,22 @@ it('leaves untouched sections alone when only one section is sent', function () 
 
     expect(SeoSetting::current()->general['site_name'])->toBe('First save')
         ->and(SeoSetting::current()->features['sitemap'])->toBeFalse();
+});
+
+it('flushes the sitemap cache on save, since content_types/features can change what it includes', function () {
+    $this->articles->create(['title' => ['en' => 'A'], 'published' => true]);
+
+    $this->get('/sitemap-articles-1.xml')->assertOk();
+    $this->get('/sitemap.xml')->assertOk();
+
+    expect(Cache::has('twill-seo.sitemap.articles.1'))->toBeTrue()
+        ->and(Cache::has('twill-seo.sitemap.index'))->toBeTrue();
+
+    $this->actingAsTwillAdmin();
+    $this->putJson(twillSeoUrl('settings'), ['general' => ['tagline' => 'Unrelated change']])->assertOk();
+
+    expect(Cache::has('twill-seo.sitemap.articles.1'))->toBeFalse()
+        ->and(Cache::has('twill-seo.sitemap.index'))->toBeFalse();
 });
 
 it('proves a separator saved via the endpoint wins over config in a rendered head title', function () {

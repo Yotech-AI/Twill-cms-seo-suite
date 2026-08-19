@@ -4,10 +4,12 @@ namespace TwillSeo\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Throwable;
 use TwillSeo\Http\Requests\SettingsUpdateRequest;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Services\Settings\SeoSettings;
 use TwillSeo\Services\Settings\SettingsPayload;
+use TwillSeo\Services\Sitemap\SitemapCache;
 
 /**
  * GET/PUT {admin}/seo/settings — the settings admin UI's JSON API. Both
@@ -20,6 +22,7 @@ class SettingsController extends Controller
     public function __construct(
         private readonly SettingsPayload $payload,
         private readonly SeoSettings $settings,
+        private readonly SitemapCache $sitemapCache,
     ) {}
 
     public function show(): JsonResponse
@@ -52,6 +55,21 @@ class SettingsController extends Controller
         // legal no-op call) — cheap, and keeps this endpoint's behavior
         // uniform rather than conditional on whether anything changed.
         $this->settings->refresh();
+
+        // A settings save can change which content types the sitemap
+        // includes (content_types.*.sitemap, features.sitemap) — flushed
+        // unconditionally, not just when one of those two sections was
+        // touched, so this never has to be revisited as a new settings
+        // field starts affecting sitemap output too. Cheap (a handful of
+        // Cache::forget calls) and infrequent (an admin save, not a hot
+        // path); never allowed to fail the save itself, mirroring the same
+        // guard HandleSeo::afterSaveHandleSeo already wraps this same call
+        // in.
+        try {
+            $this->sitemapCache->flushAll();
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         return response()->json($this->payload->build());
     }
