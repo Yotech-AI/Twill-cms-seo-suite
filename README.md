@@ -6,9 +6,24 @@ A Yoast-style SEO suite for [Twill CMS](https://twillcms.com): clean-room conten
 
 ## Installation
 
-```bash
-composer require yotech-ai/twill-cms-seo-suite
+This package is not yet on [Packagist](https://packagist.org) — a bare `composer require yotech-ai/twill-cms-seo-suite` will fail to resolve. Until it is submitted there, point Composer at the GitHub repository directly by adding a `repositories` entry to your project's `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Yotech-AI/Twill-cms-seo-suite"
+        }
+    ]
+}
 ```
+
+```bash
+composer require yotech-ai/twill-cms-seo-suite:@beta
+```
+
+`:@beta` is Composer's per-package stability flag: it allows this one package to resolve at beta stability — matching the current `v0.1.0-beta.1` tag — without lowering `minimum-stability` for the rest of your project. Once this package is submitted to Packagist, a plain `composer require yotech-ai/twill-cms-seo-suite` (no `repositories` stanza needed) will work the normal way.
 
 The package is fully self-contained — the shared Plugins-page code is vendored in (see below), so there is no second package to install or path-repository to configure.
 
@@ -85,28 +100,33 @@ Visit `{admin}/seo` (linked from the admin navigation as **SEO**) to configure s
 
 ## Listing columns
 
-`TwillSeo\Services\Listings\SeoScoreColumn` and `ReadabilityScoreColumn` add a traffic-light dot to a module's index table, reading the score `ScoreCache` wrote on the model's last save (never running the engine live):
+`TwillSeo\Services\Listings\SeoScoreColumn` and `ReadabilityScoreColumn` add a traffic-light dot to a module's index table, reading the score `ScoreCache` wrote on the model's last save (never running the engine live). Both hooks below live on the module's **controller**, not its repository — `additionalIndexTableColumns()` and `eagerLoadListingRelations()` are `A17\Twill\Http\Controllers\Admin\ModuleController` methods (verified against the vendored `area17/twill` 3.6 source):
 
 ```php
-// app/Repositories/ArticleRepository.php
-public function getIndexTableColumns(): array
+// app/Http/Controllers/Twill/ArticleController.php
+use A17\Twill\Services\Listings\TableColumns;
+use TwillSeo\Services\Listings\ReadabilityScoreColumn;
+use TwillSeo\Services\Listings\SeoScoreColumn;
+
+class ArticleController extends ModuleController
 {
-    return [
-        ...
-        SeoScoreColumn::make(),
-        ReadabilityScoreColumn::make(),
-    ];
+    protected function setUpController(): void
+    {
+        // Each cell reads $model->seo(app()->getLocale()), which lazy-loads
+        // a seoEntry relation per row unless eager-loaded here.
+        $this->eagerLoadListingRelations(['seoEntry.translations']);
+    }
+
+    protected function additionalIndexTableColumns(): TableColumns
+    {
+        return TableColumns::make()
+            ->add(SeoScoreColumn::make())
+            ->add(ReadabilityScoreColumn::make());
+    }
 }
 ```
 
-Each cell reads `$model->seo(app()->getLocale())`, which lazy-loads a `seoEntry` relation per row unless you eager-load it — on any index query touching a lot of rows, add it to the repository's listing query:
-
-```php
-public function indexQuery(int $moduleId = null, array $params = []): Builder
-{
-    return parent::indexQuery($moduleId, $params)->with('seoEntry.translations');
-}
-```
+See [`docs/integration.md`](docs/integration.md) for these two hooks in more detail.
 
 ## Config
 
@@ -165,7 +185,7 @@ The shared Plugins-page code ships built in — no separate dependency required.
 
 ## Further reading
 
-- [`docs/integration.md`](docs/integration.md) — advanced recipes: `SeoLinkable`, a custom `SeoContentResolver`, a custom schema `GraphPiece` and `BuildingSchemaGraph` listener, `TwillSeo::page()` for non-model routes, the form sidebar chip, per-type templates.
+- [`docs/integration.md`](docs/integration.md) — advanced recipes: `SeoLinkable`, a custom `SeoContentResolver`, a custom schema `GraphPiece` and `BuildingSchemaGraph` listener, `TwillSeo::page()` for non-model routes, the form sidebar chip, listing columns, per-type templates, PUT/settings-row semantics.
 - [`docs/analysis.md`](docs/analysis.md) — how scoring works, and every place this engine deliberately judges a text differently from the analysis it takes its thresholds from.
 - [`docs/schema.md`](docs/schema.md) — the emitted JSON-LD graph, node by node, and both extension points.
 - [`docs/lang-data-sources.md`](docs/lang-data-sources.md) — where every word list came from, and why (MIT clean-room: nothing here is copied from Yoast).

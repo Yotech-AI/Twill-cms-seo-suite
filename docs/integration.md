@@ -216,6 +216,37 @@ $form->addField(SeoFields::sideChip());
 
 It reads whatever `ScoreCache` last wrote; it never runs the engine live.
 
+## Listing columns in the module index
+
+`SeoScoreColumn` and `ReadabilityScoreColumn` (`TwillSeo\Services\Listings\*`) are `A17\Twill\Services\Listings\TableColumn` instances — the same building block any other Twill listing column is made of — reading whatever `ScoreCache` last wrote, never running the engine live. They are wired on through the module's **controller**, not its repository. Twill 3.6 exposes two protected hooks on `A17\Twill\Http\Controllers\Admin\ModuleController` for exactly this (verified against the vendored `area17/twill` source):
+
+- `additionalIndexTableColumns(): TableColumns` — merged on top of the module's default index columns (see `ModuleController::getIndexTableColumns()`); return your extra columns from it.
+- `eagerLoadListingRelations(array $relations): void` — sets the controller's own `$indexWith` property, which the index query is built `with()`. Call it once, typically from `setUpController()` — Twill's own per-controller setup hook, invoked from the base `ModuleController` constructor before the repository is even resolved.
+
+```php
+// app/Http/Controllers/Twill/ArticleController.php
+use A17\Twill\Services\Listings\TableColumns;
+use TwillSeo\Services\Listings\ReadabilityScoreColumn;
+use TwillSeo\Services\Listings\SeoScoreColumn;
+
+class ArticleController extends ModuleController
+{
+    protected function setUpController(): void
+    {
+        $this->eagerLoadListingRelations(['seoEntry.translations']);
+    }
+
+    protected function additionalIndexTableColumns(): TableColumns
+    {
+        return TableColumns::make()
+            ->add(SeoScoreColumn::make())
+            ->add(ReadabilityScoreColumn::make());
+    }
+}
+```
+
+Skipping `eagerLoadListingRelations()` still works — each column cell reads `$model->seo(app()->getLocale())` regardless — it just costs one extra `seoEntry` query per row on a listing page with many rows, exactly like any other Eloquent relation nobody eager-loaded.
+
 ## Per-type templates without the settings UI
 
 The settings admin page (`{admin}/seo`) is the normal way to set a
@@ -227,3 +258,23 @@ default a host can set in code (`title.default_template`,
 replaces. A host that wants a template fixed in code (never editable from
 the admin) has no built-in way to lock that — the settings row always wins
 once anything has been saved there for that content type.
+
+## The settings row: PUT semantics and long-lived runtimes
+
+`PUT {admin}/seo/settings` wholesale-replaces one entire submitted section —
+`general`, `content_types`, `features` or `advanced` — with exactly what the
+client sent, not a per-key merge (see `SettingsUpdateRequest`'s own doc
+comment on why); because the settings admin UI always seeds its local state
+from a prior `GET` first, in practice this means the first save through the
+admin freezes every key of that section, including ones the admin never
+touched, to whatever it resolved to at that moment — a later change to that
+section's `config/twill-seo.php` defaults stops reaching this install until
+the settings admin saves that section again.
+
+`SeoSettings` memoizes the settings row for the lifetime of one instance,
+and is bound as a container singleton (see its own class doc comment) — a
+long-lived PHP runtime that does not start a fresh container per request (a
+queue worker, or Laravel Octane) must call `app(SeoSettings::class)->refresh()`
+itself after a settings change to see it; `SettingsController::update()`
+already does this for a normal admin request. This package has not been
+tested under Octane.
