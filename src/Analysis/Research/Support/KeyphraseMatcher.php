@@ -54,7 +54,7 @@ final class KeyphraseMatcher
         $tokens = $this->tokenSet($text);
 
         foreach ($contentWords as $word) {
-            if (! isset($tokens[$this->normalize($word)])) {
+            if (! $this->wordInTokens($word, $tokens)) {
                 return false;
             }
         }
@@ -169,6 +169,46 @@ final class KeyphraseMatcher
         }
 
         return $set;
+    }
+
+    /**
+     * Whether one already-normalized content word is present in a token set.
+     *
+     * Mirrors tokenSet()'s own haystack-side retry, but on the needle: a
+     * hyphenated word ("e-commerce") that is not in the set outright is
+     * retried as its hyphen-split parts, exactly the way a hyphenated
+     * haystack token already is. Without this, a hyphenated keyphrase can
+     * only ever match haystack text that spells the SAME compound with the
+     * SAME hyphen — never the spaced ("e commerce"), unhyphenated ("shop
+     * guide" with "guide" only) or differently-punctuated copy an author
+     * actually wrote. A slug's hyphens become spaces before it ever reaches
+     * here (see SlugKeywordAssessment), so this is what lets "e-commerce"
+     * match a slug like "e-commerce-tips" at all, and — the same rule,
+     * unasked for — is also what lets "well-known" match body copy that
+     * reads "well known", closer to how Yoast treats a hyphen as a plain
+     * word separator.
+     *
+     * @param  array<string,true>  $tokens
+     */
+    private function wordInTokens(string $word, array $tokens): bool
+    {
+        $normalized = $this->normalize($word);
+
+        if (isset($tokens[$normalized])) {
+            return true;
+        }
+
+        if (! str_contains($normalized, '-')) {
+            return false;
+        }
+
+        foreach (explode('-', $normalized) as $part) {
+            if (! isset($tokens[$part])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

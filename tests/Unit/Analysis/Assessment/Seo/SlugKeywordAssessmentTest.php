@@ -72,6 +72,24 @@ it('matches a slug word only as a whole word', function () {
     expect(assessSlug('tealeaf-shop')->messageParams['count'])->toBe(0);
 });
 
+it('matches a hyphenated keyphrase against a slug, hyphens and all', function (string $slug, int $score, string $branch, int $count) {
+    // "e-commerce" tokenizes as ONE content word (WordTokenizer keeps a
+    // hyphenated run whole), so this is the single-word "good" branch: the
+    // slug's hyphens become spaces before matching (see the assessment's own
+    // comment on $slugWords), which used to strip the ONE way "e-commerce"
+    // could ever match — KeyphraseMatcher::allWordsInText()'s needle-side
+    // hyphen-split retry is what makes "e" + "commerce" both landing in the
+    // slug count as the whole keyphrase being present.
+    $result = assessSlug($slug, 'e-commerce');
+
+    expect($result->score)->toBe($score)
+        ->and($result->messageKey)->toBe("twill-seo::analysis.slug_keyword.{$branch}")
+        ->and($result->messageParams)->toBe(['count' => $count, 'total' => 1]);
+})->with([
+    'the hyphenated word is present, hyphens turned to spaces' => ['e-commerce-tips', 9, 'good', 1],
+    'the hyphenated word is absent' => ['shop-guide', 6, 'some', 0],
+]);
+
 it('always applies and identifies itself as slugKeyword', function () {
     $assessment = new SlugKeywordAssessment;
 

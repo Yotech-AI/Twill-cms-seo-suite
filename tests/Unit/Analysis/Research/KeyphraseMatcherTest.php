@@ -59,6 +59,8 @@ it('finds every content word in a text', function (array $words, string $text, b
     'a needle is matched as a whole word' => [['dog'], 'The dogs are here.', false],
     'a hyphenated haystack word is retried in parts' => [['well', 'known'], 'a well-known fact', true],
     'a hyphenated needle matches a hyphenated word' => [['well-known'], 'a well-known fact', true],
+    'a hyphenated needle matches a spaced haystack' => [['well-known'], 'a well known fact', true],
+    'a hyphenated needle is still whole-word: one missing part fails' => [['well-known'], 'a well done fact', false],
     'a curly apostrophe in the text still matches' => [["don't"], 'we don’t stop', true],
     'an entity in the text still matches' => [['tom', 'jerry'], 'Tom &amp; Jerry', true],
     'no words at all matches anything' => [[], 'The best dogs.', true],
