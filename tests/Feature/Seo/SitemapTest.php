@@ -258,6 +258,21 @@ it('omits hreflang entirely when fewer than two locales resolve, even with the f
     expect($xml->xpath('//xhtml:link'))->toHaveCount(0);
 });
 
+it('omits hreflang entirely when every configured locale resolves to the identical URL', function () {
+    // Overrides this file's own beforeEach, which builds a distinct URL per
+    // locale — here the url callback ignores $locale entirely, so both
+    // configured locales resolve to the exact same string.
+    config(['twill-seo.features.hreflang' => true]);
+    config(['twill-seo.models.articles.url' => fn (Article $m, string $l): string => "https://example.test/articles/{$m->id}"]);
+
+    $this->articles->create(['title' => ['en' => 'A', 'nl' => 'A nl'], 'published' => true]);
+
+    $xml = sitemapXml($this->get('/sitemap-articles-1.xml')->assertOk()->getContent());
+    $xml->registerXPathNamespace('xhtml', 'http://www.w3.org/1999/xhtml');
+
+    expect($xml->xpath('//xhtml:link'))->toHaveCount(0);
+});
+
 it('omits image entries when sitemap_images is off for the type', function () {
     $article = $this->articles->create(['title' => ['en' => 'A'], 'published' => true]);
     attachMedia($article, Article::OG_IMAGE_ROLE, 1200, 630);

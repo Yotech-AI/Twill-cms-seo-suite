@@ -157,6 +157,20 @@ it('omits hreflang entirely when fewer than two locales resolve, even with the f
     expect($html)->not->toContain('hreflang');
 });
 
+it('omits hreflang entirely when every configured locale resolves to the identical URL', function () {
+    // Two locales configured and both resolve — but the url callback below
+    // ignores $locale entirely, exactly what a resolver with no real
+    // per-locale routing does. Two locale KEYS pointing at one real URL is
+    // not an alternate worth advertising.
+    config(['twill-seo.features.hreflang' => true]);
+    config(['twill-seo.models.articles.url' => fn (Article $m, string $l): string => "https://example.test/articles/{$m->id}"]);
+
+    $article = $this->articles->create(['title' => ['en' => 'A', 'nl' => 'A nl']]);
+    $html = renderHeadHtml(':model="$article"', ['article' => $article->fresh()]);
+
+    expect($html)->not->toContain('hreflang');
+});
+
 it('emits OG tags with the mapped og:locale, og:type, og:url and og:site_name', function () {
     config(['app.name' => 'Test Site']);
 

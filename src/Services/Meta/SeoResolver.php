@@ -305,7 +305,13 @@ final class SeoResolver
             }
         }
 
-        if (count($byLocale) < 2) {
+        // array_unique, not count($byLocale): a resolver that ignores locale
+        // (no per-locale URL, or a registry `url` callback that does not use
+        // its own $locale argument) can resolve every configured locale to
+        // the exact same string — two or more LOCALES with only one real URL
+        // between them says nothing a reader or a crawler needs to hear, so
+        // this counts distinct URLs, not distinct locale keys.
+        if (count(array_unique($byLocale)) < 2) {
             return [];
         }
 

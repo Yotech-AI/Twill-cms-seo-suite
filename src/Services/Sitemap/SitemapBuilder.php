@@ -253,7 +253,11 @@ final class SitemapBuilder
             }
         }
 
-        if (count($byLocale) < 2) {
+        // array_unique, not count($byLocale) — see SeoResolver::
+        // resolveAlternates()'s identical guard: a resolver that ignores
+        // locale can resolve every configured locale to the same URL, and
+        // that is nothing worth advertising as an alternate.
+        if (count(array_unique($byLocale)) < 2) {
             return;
         }
 
