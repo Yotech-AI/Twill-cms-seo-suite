@@ -94,13 +94,6 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      */
     private const PROCESS_AUXILIARIES = ['word', 'wordt', 'worden', 'werd', 'werden', 'geworden'];
 
-    /**
-     * The particle that marks what follows as an infinitive rather than a
-     * finite verb. "Te worden" heads a phrase of its own and governs nothing
-     * outside it.
-     */
-    private const INFINITIVE_MARKER = 'te';
-
     /** A participle never follows one of these; a noun does. */
     private const DETERMINERS = [
         'de', 'het', 'een', 'deze', 'die', 'dit', 'dat', 'mijn', 'jouw', 'uw',
@@ -213,7 +206,7 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
      */
     private function clauseIsPassive(array $tokens): bool
     {
-        $auxiliaries = $this->pairableAuxiliaries($tokens);
+        $auxiliaries = $this->auxiliariesIn($tokens);
 
         if ($auxiliaries === []) {
             return false;
@@ -237,31 +230,26 @@ final readonly class DutchPassiveVoiceDetector implements PassiveVoiceDetector
     }
 
     /**
-     * The auxiliaries a participle in this clause may pair with, as position =>
-     * whether it is a worden form.
+     * Every auxiliary in the clause, as position => whether it is a worden form.
      *
-     * A te-marked infinitive is deliberately left out. "Om marktleider te
-     * worden" is a purpose clause: an infinitive behind "te" heads its own
-     * phrase and cannot govern a participle sitting outside it, so it is not an
-     * auxiliary for this purpose at all.
+     * An infinitive counts as readily as a finite verb, marked with "te" or
+     * not. "Te worden" cannot govern a participle outside its own phrase, but
+     * it governs the one inside it perfectly well: "om gekozen te worden" and
+     * "het formulier dient te worden ingevuld" are passives, and the nearest-
+     * auxiliary pairing already keeps such an infinitive away from a participle
+     * that belongs to something else.
      *
      * @param  list<string>  $tokens
      * @return array<int,bool>
      */
-    private function pairableAuxiliaries(array $tokens): array
+    private function auxiliariesIn(array $tokens): array
     {
         $auxiliaries = [];
 
         foreach ($tokens as $index => $token) {
-            if (! $this->auxiliaries->contains($token)) {
-                continue;
+            if ($this->auxiliaries->contains($token)) {
+                $auxiliaries[$index] = in_array($token, self::PROCESS_AUXILIARIES, true);
             }
-
-            if ($index > 0 && $tokens[$index - 1] === self::INFINITIVE_MARKER) {
-                continue;
-            }
-
-            $auxiliaries[$index] = in_array($token, self::PROCESS_AUXILIARIES, true);
         }
 
         return $auxiliaries;

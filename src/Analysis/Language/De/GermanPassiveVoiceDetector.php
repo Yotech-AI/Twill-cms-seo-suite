@@ -83,13 +83,6 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
         'würdet',
     ];
 
-    /**
-     * The particle that marks what follows as an infinitive rather than a
-     * finite verb. "Zu werden" heads a phrase of its own and governs nothing
-     * outside it.
-     */
-    private const INFINITIVE_MARKER = 'zu';
-
     /** A participle never follows one of these; a noun does. */
     private const DETERMINERS = [
         'der', 'die', 'das', 'den', 'dem', 'des',
@@ -213,7 +206,7 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
      */
     private function clauseIsPassive(array $tokens): bool
     {
-        $auxiliaries = $this->pairableAuxiliaries($tokens);
+        $auxiliaries = $this->auxiliariesIn($tokens);
 
         if ($auxiliaries === []) {
             return false;
@@ -237,34 +230,26 @@ final readonly class GermanPassiveVoiceDetector implements PassiveVoiceDetector
     }
 
     /**
-     * The auxiliaries a participle in this clause may pair with, as position =>
-     * whether it is a werden form.
+     * Every auxiliary in the clause, as position => whether it is a werden form.
      *
-     * A zu-marked infinitive is deliberately left out. "Um Marktführer zu
-     * werden" is a purpose clause: an infinitive behind "zu" heads its own
-     * phrase and cannot govern a participle sitting outside it, so it is not an
-     * auxiliary for this purpose at all. German usually writes a comma in front
-     * of such a clause, which would have split it off anyway — but headline and
-     * bullet copy routinely leaves the comma out, and that is exactly the
-     * register a CMS holds.
+     * An infinitive counts as readily as a finite verb, marked with "zu" or
+     * not. "Zu werden" cannot govern a participle outside its own phrase, but
+     * it governs the one inside it perfectly well: "er hofft gewählt zu werden"
+     * and "die Daten scheinen gelöscht zu werden" are passives, and the
+     * nearest-auxiliary pairing already keeps such an infinitive away from a
+     * participle that belongs to something else.
      *
      * @param  list<string>  $tokens
      * @return array<int,bool>
      */
-    private function pairableAuxiliaries(array $tokens): array
+    private function auxiliariesIn(array $tokens): array
     {
         $auxiliaries = [];
 
         foreach ($tokens as $index => $token) {
-            if (! $this->auxiliaries->contains($token)) {
-                continue;
+            if ($this->auxiliaries->contains($token)) {
+                $auxiliaries[$index] = in_array($token, self::PROCESS_AUXILIARIES, true);
             }
-
-            if ($index > 0 && $tokens[$index - 1] === self::INFINITIVE_MARKER) {
-                continue;
-            }
-
-            $auxiliaries[$index] = in_array($token, self::PROCESS_AUXILIARIES, true);
         }
 
         return $auxiliaries;

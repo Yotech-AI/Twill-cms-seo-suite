@@ -140,12 +140,16 @@ Nearest, rather than a direction, because both languages put the finite verb
 before its participle in a main clause and after it in a subordinate one:
 distance says more than direction does. Ties go to the auxiliary in front.
 
-A `te`/`zu`-marked infinitive is excluded from pairing altogether. That is a
-fact about the grammar rather than a patch for the example above: an infinitive
-behind *te* or *zu* heads its own phrase and governs nothing outside it. The
-exclusion is deliberately narrow — "het huis zal worden verkocht" and "das Haus
-soll verkauft werden" have a bare infinitive with no marker in front of it, and
-both stay passive.
+Nearest-pairing is the whole rule, and it is enough on its own. In the example
+above, *gegroeid* sits one word from *is* and four from *worden*, so it keeps
+the auxiliary it belongs to without any further help. An infinitive is an
+auxiliary like any other here, marked with *te*/*zu* or not: "te worden" cannot
+govern a participle outside its own phrase, but it governs the one inside it
+perfectly well, and those are among the commonest passives either language
+writes — "het formulier dient te worden ingevuld", "hij hoopt om gekozen te
+worden", "er hofft gewählt zu werden", "die Daten scheinen gelöscht zu werden".
+Excluding marked infinitives from pairing would throw the phrase out along with
+the boundary.
 
 The membership test is therefore narrower than "can this verb take an object":
 it is whether the verb has a perfect with zijn/sein that would otherwise read as

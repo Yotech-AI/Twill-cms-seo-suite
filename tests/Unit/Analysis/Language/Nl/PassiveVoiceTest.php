@@ -65,6 +65,14 @@ it('reads a dutch passive as passive', function (string $sentence) {
     // stays a perfect; "getekend" is the passive that makes this sentence one.
     'two auxiliaries, each with its own participle' => ['De prijzen zijn gestegen sinds het contract werd getekend.'],
 
+    // A te-marked infinitive governs the participle inside its own phrase, and
+    // "om ... te worden" is one of the commonest passives Dutch writes.
+    'a passive infinitive after dienen' => ['Het formulier dient te worden ingevuld.'],
+    'a passive infinitive after hoeven' => ['De aanvraag hoeft niet te worden ondertekend.'],
+    'a passive infinitive in a purpose clause' => ['Hij hoopt om gekozen te worden.'],
+    'the same purpose clause the other way round' => ['Hij hoopt om te worden gekozen.'],
+    'a passive infinitive with zijn' => ['Het probleem lijkt te zijn opgelost.'],
+
     'passive in the second clause' => ['We kwamen laat aan, maar de kamer was al opgeruimd.'],
     'passive in a subordinate clause' => ['Ik denk dat het huis vorig jaar verkocht is.'],
     'nothing was said' => ['Er werd niets gezegd over de vertraging.'],

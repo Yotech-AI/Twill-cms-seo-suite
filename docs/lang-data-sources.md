@@ -118,9 +118,6 @@ not have to decide:
   pairs each participle with the nearest auxiliary rather than asking the
   question once for a whole clause. A unit test pins that no word ever sits in
   both this guard and the irregular-participle list: the two answer opposite
-  questions, so a word in both is a straight contradiction;
-- the particle that marks an infinitive (`te`, `zu`). An infinitive behind it
-  heads its own phrase, so it is never an auxiliary a participle elsewhere in
-  the clause can pair with.
+  questions, so a word in both is a straight contradiction.
 
 Both are explained at length in `docs/analysis.md`.

@@ -58,6 +58,14 @@ it('reads a german passive as passive', function (string $sentence) {
     // stays a perfect; "unterschrieben" is the passive that makes this one.
     'two auxiliaries, each with its own participle' => ['Die Preise sind gestiegen seit der Vertrag unterschrieben wurde.'],
 
+    // A zu-marked infinitive governs the participle inside its own phrase, and
+    // "zu werden" behind one is an everyday German passive.
+    'a passive infinitive after hoffen' => ['Er hofft gewählt zu werden.'],
+    'a passive infinitive after scheinen' => ['Die Daten scheinen gelöscht zu werden.'],
+    // The comma German would normally write is left out on purpose: headline
+    // and bullet copy drops it, and that is where this has to hold.
+    'a passive infinitive opening the sentence' => ['Um gefunden zu werden muss der Titel stimmen.'],
+
     // The Zustandspassiv: sein plus a participle, describing the state a deed
     // left behind.
     'a state left behind' => ['Das Geschäft ist seit acht Uhr geöffnet.'],
