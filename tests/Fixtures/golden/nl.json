@@ -1,0 +1,286 @@
+{
+    "insights": {
+        "fleschBand": "fairly_easy",
+        "fleschScore": 70.5,
+        "readingTimeMinutes": 2,
+        "wordCount": 292
+    },
+    "languageSupported": true,
+    "locale": "nl",
+    "readability": {
+        "rating": "good",
+        "results": [
+            {
+                "category": "good",
+                "id": "sentenceLength",
+                "messageKey": "twill-seo::analysis.sentence_length.good",
+                "params": {
+                    "limit": 20,
+                    "percentage": 0.0
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "0 percent of the sentences are longer than 20 words, which is within the comfortable range."
+            },
+            {
+                "category": "good",
+                "id": "paragraphTooLong",
+                "messageKey": "twill-seo::analysis.paragraph_too_long.good",
+                "params": {
+                    "max": 150,
+                    "words": 76
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The longest paragraph is 76 words, within the 150 that reads comfortably."
+            },
+            {
+                "category": "good",
+                "id": "subheadingsTooLong",
+                "messageKey": "twill-seo::analysis.subheadings_too_long.short_text",
+                "params": {
+                    "max": 300,
+                    "words": 292
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The text is short enough to read without subheadings."
+            },
+            {
+                "category": "good",
+                "id": "sentenceBeginnings",
+                "messageKey": "twill-seo::analysis.sentence_beginnings.varied",
+                "params": [],
+                "rating": "good",
+                "score": 9,
+                "text": "The sentences do not all start the same way."
+            },
+            {
+                "category": "good",
+                "id": "transitionWords",
+                "messageKey": "twill-seo::analysis.transition_words.good",
+                "params": {
+                    "percentage": 60.0
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "60 percent of the sentences use a transition word, which is enough to follow the argument."
+            },
+            {
+                "category": "good",
+                "id": "passiveVoice",
+                "messageKey": "twill-seo::analysis.passive_voice.good",
+                "params": {
+                    "count": 0,
+                    "percentage": 0.0
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "0 percent of the sentences are in the passive voice, which is within the normal range."
+            }
+        ],
+        "score": 90
+    },
+    "seo": {
+        "rating": "good",
+        "results": [
+            {
+                "category": "good",
+                "id": "introductionKeyword",
+                "messageKey": "twill-seo::analysis.introduction_keyword.good",
+                "params": [],
+                "rating": "good",
+                "score": 9,
+                "text": "The keyphrase appears in the first paragraph, in one piece."
+            },
+            {
+                "category": "good",
+                "id": "keyphraseLength",
+                "messageKey": "twill-seo::analysis.keyphrase_length.good",
+                "params": {
+                    "acceptableMax": 8,
+                    "count": 1,
+                    "recommendedMax": 4
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The keyphrase is 1 content words long, which is the length people actually search with."
+            },
+            {
+                "category": "good",
+                "id": "keywordDensity",
+                "messageKey": "twill-seo::analysis.keyword_density.good",
+                "params": {
+                    "count": 8,
+                    "density": 2.7,
+                    "recommendedMax": 8
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The keyphrase appears 8 times, a density of 2.7 percent, which is about right for this length."
+            },
+            {
+                "category": "good",
+                "id": "metaDescriptionKeyword",
+                "messageKey": "twill-seo::analysis.meta_description_keyword.good",
+                "params": {
+                    "count": 1
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The keyphrase appears 1 times in the meta description, where a searcher will see it in bold."
+            },
+            {
+                "category": "good",
+                "id": "metaDescriptionLength",
+                "messageKey": "twill-seo::analysis.meta_description_length.good",
+                "params": {
+                    "length": 134,
+                    "max": 156
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The meta description is 134 characters, which fits the space a search result gives it."
+            },
+            {
+                "category": "good",
+                "id": "subheadingsKeyword",
+                "messageKey": "twill-seo::analysis.subheadings_keyword.good",
+                "params": {
+                    "count": 2,
+                    "total": 4
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "2 of the 4 subheadings contain the keyphrase, which is about the right share."
+            },
+            {
+                "category": "good",
+                "id": "textCompetingLinks",
+                "messageKey": "twill-seo::analysis.text_competing_links.good",
+                "params": {
+                    "count": 0
+                },
+                "rating": "good",
+                "score": 8,
+                "text": "No link in the text competes with this page for the keyphrase."
+            },
+            {
+                "category": "good",
+                "id": "imageKeyphrase",
+                "messageKey": "twill-seo::analysis.image_keyphrase.good",
+                "params": {
+                    "count": 1,
+                    "total": 2
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "1 of the 2 images describe the keyphrase in their alt text."
+            },
+            {
+                "category": "good",
+                "id": "images",
+                "messageKey": "twill-seo::analysis.images.good",
+                "params": {
+                    "count": 2
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The text is illustrated with at least one image."
+            },
+            {
+                "category": "improvements",
+                "id": "textLength",
+                "messageKey": "twill-seo::analysis.text_length.slightly_short",
+                "params": {
+                    "recommended": 300,
+                    "words": 292
+                },
+                "rating": "ok",
+                "score": 6,
+                "text": "The text is 292 words long, just under the recommended 300. Add a little more detail."
+            },
+            {
+                "category": "good",
+                "id": "externalLinks",
+                "messageKey": "twill-seo::analysis.external_links.good",
+                "params": {
+                    "nofollow": 0,
+                    "total": 1
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The text links out to other sites, and none of those links are nofollow."
+            },
+            {
+                "category": "good",
+                "id": "keyphraseInSEOTitle",
+                "messageKey": "twill-seo::analysis.keyphrase_in_seo_title.good_start",
+                "params": [],
+                "rating": "good",
+                "score": 9,
+                "text": "The SEO title opens with the keyphrase, which is where a searcher reads first."
+            },
+            {
+                "category": "good",
+                "id": "internalLinks",
+                "messageKey": "twill-seo::analysis.internal_links.good",
+                "params": {
+                    "nofollow": 0,
+                    "total": 1
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The text links to your own pages, and none of those links are nofollow."
+            },
+            {
+                "category": "good",
+                "id": "titleWidth",
+                "messageKey": "twill-seo::analysis.title_width.good",
+                "params": {
+                    "estimated": true,
+                    "max": 600,
+                    "width": 344
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The SEO title is around 344 pixels wide and fits the 600 pixels a search result shows."
+            },
+            {
+                "category": "good",
+                "id": "slugKeyword",
+                "messageKey": "twill-seo::analysis.slug_keyword.good",
+                "params": {
+                    "count": 1,
+                    "total": 1
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "The slug contains the keyphrase, so the URL itself says what the page is about."
+            },
+            {
+                "category": "good",
+                "id": "singleH1",
+                "messageKey": "twill-seo::analysis.single_h1.good",
+                "params": {
+                    "count": 1
+                },
+                "rating": "good",
+                "score": 8,
+                "text": "The text uses at most one H1 heading."
+            },
+            {
+                "category": "good",
+                "id": "previouslyUsedKeyphrase",
+                "messageKey": "twill-seo::analysis.previously_used_keyphrase.unique",
+                "params": {
+                    "count": 0
+                },
+                "rating": "good",
+                "score": 9,
+                "text": "No other page targets this keyphrase."
+            }
+        ],
+        "score": 97
+    }
+}
