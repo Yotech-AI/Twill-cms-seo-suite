@@ -1,0 +1,72 @@
+# Local verification (no GitHub runner available in this environment): the
+# YAML parses cleanly (`npx js-yaml tests.yml`), and every `run:` command
+# below was executed locally in this exact order — composer install, pest,
+# pint --test, npm ci, npm run build, git diff --exit-code resources/dist —
+# all green against a checked-out working tree. What is NOT verified is the
+# GitHub-hosted runner itself: action versions resolving (actions/checkout@v4,
+# shivammathur/setup-php@v2, actions/setup-node@v4), extension installation
+# on a fresh Ubuntu image, and matrix behavior. Confirm on the first real push.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # PHP 8.4 exercises HtmlParser's modern Dom\HTMLDocument backend;
+        # 8.3 exercises the legacy DOMDocument/libxml backend automatically
+        # (HtmlParser selects it by checking class_exists(Dom\HTMLDocument::class),
+        # which is simply false on 8.3 — no test flag needed to force it).
+        # Both backends are covered by every test in the suite that carries
+        # the ->with('analysis html backends') dataset, so this matrix is
+        # what actually exercises both, not just a general compatibility
+        # check.
+        php-version: ['8.3', '8.4']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: dom, mbstring, intl
+          coverage: none
+
+      # The package is fully self-contained — the shared Plugins-page code
+      # is vendored in src/PluginPage/, not a yotech-ai/twill-plugin-support
+      # dependency — so a plain `composer install` needs no path repository
+      # or sibling checkout of any kind.
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run the test suite
+        run: vendor/bin/pest
+
+      - name: Check code style
+        run: vendor/bin/pint --test
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build the frontend bundle
+        run: npm run build
+
+      # The built resources/dist/ files are committed (AssetController serves
+      # them straight from the package, with no publish step required) — a
+      # stale commit here would silently ship an out-of-date panel/settings
+      # bundle, so a rebuild diverging from what's checked in fails the build.
+      - name: Verify the committed dist/ is up to date
+        run: git diff --exit-code resources/dist
