@@ -56,6 +56,29 @@ it('redirects the old settings URL to the singleton', function () {
         ->assertRedirect(settingsRoute());
 });
 
+it('saves through the real singleton update endpoint', function () {
+    $row = SeoSetting::current();
+
+    // The full HTTP path, not a direct repository call: Twill resolves the
+    // conventional FormRequest class (Http\Requests\SeoSettingRequest) by
+    // name inside update() — a missing class only ever surfaces here.
+    $this->actingAsTwillAdmin()
+        ->putJson(
+            route(config('twill.admin_route_name_prefix', 'twill.').'seoSettings.update', $row->id),
+            [
+                'general_site_name' => 'Endpoint Co',
+                'ct_articles_schema_type' => 'BlogPosting',
+            ],
+        )
+        ->assertOk();
+
+    $settings = app(SeoSettings::class);
+    $settings->refresh();
+
+    expect($settings->siteName())->toBe('Endpoint Co')
+        ->and($settings->schemaType('articles'))->toBe('BlogPosting');
+});
+
 it('maps the flat form fields onto the JSON columns, and the accessor reads them back', function () {
     $row = SeoSetting::current();
 
