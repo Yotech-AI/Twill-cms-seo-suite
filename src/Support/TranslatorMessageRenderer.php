@@ -27,6 +27,18 @@ final class TranslatorMessageRenderer implements MessageRenderer
      */
     public function render(string $key, array $params): string
     {
-        return $this->translator->get($key, $params);
+        $line = $this->translator->get($key, $params);
+
+        // Laravel echoes the key back when neither the current locale nor the
+        // host's fallback locale carries the line — real on Dutch hosts, where
+        // app.locale AND app.fallback_locale are both 'nl': a missing nl file
+        // would surface raw "twill-seo::analysis…" keys in the editor panel.
+        // English ships with the package and is the baseline every key exists
+        // in, so it is the last resort here regardless of host configuration.
+        if ($line === $key) {
+            $line = $this->translator->get($key, $params, 'en');
+        }
+
+        return $line;
     }
 }
