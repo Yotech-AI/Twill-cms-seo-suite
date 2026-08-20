@@ -2,6 +2,7 @@
 
 use A17\Twill\Services\Forms\BladePartial;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\View;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Services\Form\SeoFields;
 use TwillSeo\Tests\Fixtures\Models\Article;
@@ -123,6 +124,42 @@ it('includes the analysis panel when the settings row re-enables it over a confi
     $fieldset = SeoFields::fieldset();
 
     expect($fieldset->fields->filter(fn ($field) => $field instanceof BladePartial))->not->toBeEmpty();
+});
+
+it('renders sideForm() through Twill\'s real side-column pipeline without crashing', function () {
+    // Regression for the first sidebar deployment: a Fieldset placed among a
+    // Form's loose items reaches base_form's `$field->render()` loop, and
+    // Fieldset has no render() — the edit page 500s. sideForm() must route
+    // the fieldset through the Form's dedicated fieldsets collection, which
+    // is exactly what this render (the same call renderSideForm() makes)
+    // proves end to end.
+    $article = (new ArticleRepository(new Article))
+        ->create(['title' => ['en' => 'Side', 'nl' => 'Side']]);
+
+    View::share('form', [
+        'item' => $article,
+        'form_fields' => [],
+        'moduleName' => 'articles',
+        'routePrefix' => null,
+    ]);
+
+    $form = SeoFields::sideForm();
+    $renderArray = $form->formToRenderArray();
+
+    // The structural half: the fieldset sits in the fieldsets collection,
+    // never among the loose render fields...
+    expect($renderArray['renderFieldsets'])->not->toBeNull()
+        ->and($renderArray['renderFieldsets']->first()->id)->toBe('seo')
+        ->and($renderArray['renderFields']->isEmpty())->toBeTrue()
+        // ...so Twill suppresses the empty implicit "Content" fieldset.
+        ->and($renderArray['disableContentFieldset'])->toBeTrue();
+
+    // The behavioral half: the exact view renderSideForm() builds renders
+    // without throwing and contains the SEO fieldset with its fields.
+    $html = view('twill::partials.form.renderer.base_form', $renderArray)->render();
+
+    expect($html)->toContain('seo_title')
+        ->and($html)->toContain('seo_keyphrase');
 });
 
 it('exposes analysisPanel() and sideChip() as their own BladePartials', function () {

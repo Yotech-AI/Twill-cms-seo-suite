@@ -97,7 +97,16 @@ class SeoFields
      */
     public static function sideForm(bool $analysis = true, bool $social = true, bool $advanced = true): Form
     {
-        return Form::make([self::fieldset($analysis, $social, $advanced)]);
+        // The fieldset must be routed through addFieldset(): Twill's
+        // base_form renderer calls ->render() on every LOOSE Form item — a
+        // method Fieldset does not have — and only the Form's dedicated
+        // fieldsets collection reaches the fieldset-aware render path. A
+        // Fieldset passed to Form::make([...]) therefore crashes the edit
+        // page ("Call to undefined method Fieldset::render()").
+        $form = Form::make();
+        $form->addFieldset(self::fieldset($analysis, $social, $advanced));
+
+        return $form;
     }
 
     /**
