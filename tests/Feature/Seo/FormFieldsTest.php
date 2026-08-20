@@ -5,6 +5,7 @@ use Illuminate\Support\Collection;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Services\Form\SeoFields;
 use TwillSeo\Tests\Fixtures\Models\Article;
+use TwillSeo\Tests\Fixtures\Models\ArticleWithoutDeclaredCrops;
 use TwillSeo\Tests\Fixtures\Models\Page;
 use TwillSeo\Tests\Fixtures\Repositories\ArticleRepository;
 
@@ -137,8 +138,21 @@ it('registers the og image media role on the fixture article without losing the 
 
     expect($params)->toHaveKey(Article::OG_IMAGE_ROLE)
         ->and($params[Article::OG_IMAGE_ROLE]['default'][0]['ratio'])->toBe(1.91)
-        // config('twill.default_crops')'s own roles must survive the merge.
+        // The host's own declared role must survive the merge. (The fixture
+        // declares $mediasParams the way real Twill models do — which is
+        // also the composition regression: HasSeo declaring the property
+        // itself fatals against any such host.)
         ->and($params)->toHaveKey('cover');
+});
+
+it('skips the og role merge for a HasMedias host without a declared mediasParams property', function () {
+    // Composing at all is half the test (no trait/class property fatal);
+    // the skip itself is the other half — merging here would go through
+    // Eloquent's __set() and corrupt the model's own writes.
+    $model = new ArticleWithoutDeclaredCrops;
+
+    expect($model->getMediasParams())->not->toHaveKey(Article::OG_IMAGE_ROLE)
+        ->and($model->getAttributes())->not->toHaveKey('mediasParams');
 });
 
 it('registers both fixture modules in the twill-seo model registry', function () {

@@ -30,15 +30,6 @@ trait HasSeo
      */
     public const OG_IMAGE_ROLE = 'twill_seo_og_image';
 
-    /**
-     * Declared here (not left to the host model) so initializeHasSeo()'s
-     * assignment below lands on a real PHP property. Without a declaration,
-     * Eloquent's __set() magic would treat "mediasParams" as an undefined
-     * *attribute* instead — silently corrupting the model's own INSERT/UPDATE
-     * with a bogus array-valued column.
-     */
-    public $mediasParams;
-
     public function seoEntry(): MorphOne
     {
         return $this->morphOne(SeoEntry::class, 'seoable');
@@ -56,9 +47,20 @@ trait HasSeo
     }
 
     /**
-     * Registers the OG/Twitter share image role without discarding whatever
-     * crops the host model already declares. Only models using HasMedias
-     * have a mediasParams contract to extend.
+     * Registers the OG/Twitter share image role without discarding the crops
+     * the host model already declares. Two guards, both load-bearing:
+     *
+     * - Only models using HasMedias have a mediasParams contract to extend.
+     * - The property must be DECLARED on the host (or an ancestor). This
+     *   trait deliberately does not declare it itself: PHP fatals when a
+     *   trait and its composing class declare the same property with
+     *   different defaults, and `public $mediasParams = [...]` is exactly
+     *   how real Twill models define their media roles. Assigning to an
+     *   UNdeclared property would route through Eloquent's __set() and
+     *   corrupt the model's own INSERT/UPDATE with a bogus attribute, so
+     *   hosts without the declaration are skipped instead — their share
+     *   image still uploads and crops, resolving through
+     *   config('twill.default_crops') like any role Twill doesn't know.
      */
     public function initializeHasSeo(): void
     {
@@ -66,11 +68,15 @@ trait HasSeo
             return;
         }
 
+        if (! property_exists($this, 'mediasParams')) {
+            return;
+        }
+
         // Mirrors HasMedias::getMediasParams()'s own fallback: an
-        // uncustomized model resolves entirely from config, so seed the
-        // merge from that same base rather than losing the host's default
-        // crops the moment we add our own role.
-        $params = (isset($this->mediasParams) && is_array($this->mediasParams))
+        // uncustomized declaration resolves entirely from config, so seed
+        // the merge from that same base rather than losing the host's
+        // default crops the moment we add our own role.
+        $params = is_array($this->mediasParams)
             ? $this->mediasParams
             : (array) config('twill.default_crops');
 
