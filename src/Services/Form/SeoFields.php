@@ -34,7 +34,7 @@ class SeoFields
      * trim the rest of the fieldset down to just the always-on keyphrase/
      * title/description trio.
      */
-    public static function fieldset(bool $analysis = true, bool $social = true, bool $advanced = true): Fieldset
+    public static function fieldset(bool $analysis = true, bool $social = true, bool $advanced = true, bool $open = false): Fieldset
     {
         $fields = [];
 
@@ -79,7 +79,7 @@ class SeoFields
             );
         }
 
-        return Fieldset::make()->id('seo')->title(__('SEO'))->closed()->fields($fields);
+        return Fieldset::make()->id('seo')->title(__('SEO'))->open($open)->fields($fields);
     }
 
     /**
@@ -103,8 +103,11 @@ class SeoFields
         // fieldsets collection reaches the fieldset-aware render path. A
         // Fieldset passed to Form::make([...]) therefore crashes the edit
         // page ("Call to undefined method Fieldset::render()").
+        // Open in the sidebar: the stoplights ARE the point of putting the
+        // section next to the publish widget — collapsed they say nothing.
+        // (Main-form placements keep the collapsed default of fieldset().)
         $form = Form::make();
-        $form->addFieldset(self::fieldset($analysis, $social, $advanced));
+        $form->addFieldset(self::fieldset($analysis, $social, $advanced, open: true));
 
         return $form;
     }

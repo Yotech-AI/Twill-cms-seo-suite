@@ -150,6 +150,8 @@ it('renders sideForm() through Twill\'s real side-column pipeline without crashi
     // never among the loose render fields...
     expect($renderArray['renderFieldsets'])->not->toBeNull()
         ->and($renderArray['renderFieldsets']->first()->id)->toBe('seo')
+        // Sidebar placement opens the fieldset — the stoplights are the point.
+        ->and($renderArray['renderFieldsets']->first()->open)->toBeTrue()
         ->and($renderArray['renderFields']->isEmpty())->toBeTrue()
         // ...so Twill suppresses the empty implicit "Content" fieldset.
         ->and($renderArray['disableContentFieldset'])->toBeTrue();
