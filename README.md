@@ -6,7 +6,11 @@ A Yoast-style SEO suite for [Twill CMS](https://twillcms.com): clean-room conten
 
 ## Installation
 
-This package is not yet on [Packagist](https://packagist.org) — a bare `composer require yotech-ai/twill-cms-seo-suite` will fail to resolve. Until it is submitted there, point Composer at the GitHub repository directly by adding a `repositories` entry to your project's `composer.json`:
+```bash
+composer require yotech-ai/twill-cms-seo-suite
+```
+
+If the package is not (yet) available to you through [Packagist](https://packagist.org), point Composer at the GitHub repository directly by adding a `repositories` entry to your project's `composer.json` and requiring `yotech-ai/twill-cms-seo-suite:^1.0`:
 
 ```json
 {
@@ -18,12 +22,6 @@ This package is not yet on [Packagist](https://packagist.org) — a bare `compos
     ]
 }
 ```
-
-```bash
-composer require yotech-ai/twill-cms-seo-suite:@beta
-```
-
-`:@beta` is Composer's per-package stability flag: it allows this one package to resolve at beta stability — matching the current `v0.1.0-beta.1` tag — without lowering `minimum-stability` for the rest of your project. Once this package is submitted to Packagist, a plain `composer require yotech-ai/twill-cms-seo-suite` (no `repositories` stanza needed) will work the normal way.
 
 The package is fully self-contained — the shared Plugins-page code is vendored in (see below), so there is no second package to install or path-repository to configure.
 

@@ -7,6 +7,7 @@ use A17\Twill\Facades\TwillNavigation;
 use A17\Twill\View\Components\Navigation\NavigationLink;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
+use Throwable;
 use TwillSeo\Analysis\AnalysisRunner;
 use TwillSeo\Analysis\Assessor\AssessorFactory;
 use TwillSeo\Analysis\Html\HtmlParser;
@@ -160,6 +161,38 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         $this->registerRoutes();
         $this->registerPublicRoutes();
         $this->registerNavigation();
+        $this->removeShadowingStaticSitemap();
+    }
+
+    /**
+     * A physical public/{sitemap.path} file — e.g. a leftover
+     * spatie/laravel-sitemap export from before this package took over —
+     * wins over any Laravel route at the web-server level, so the suite's
+     * sitemap would stay shadowed forever no matter what the feature toggle
+     * says. When the sitemap feature is enabled, the static file is deleted
+     * so the route can serve. Cost-conscious ordering: the is_file() stat
+     * runs every boot, but the DB-backed feature() check only runs while a
+     * shadowing file actually exists — i.e. once, transitionally. Wrapped so
+     * a failure (permissions, race with a concurrent delete) degrades to
+     * "still shadowed" rather than a broken boot.
+     */
+    protected function removeShadowingStaticSitemap(): void
+    {
+        $path = public_path((string) config('twill-seo.sitemap.path', 'sitemap.xml'));
+
+        if (! is_file($path)) {
+            return;
+        }
+
+        try {
+            if (! $this->app->make(SeoSettings::class)->feature('sitemap')) {
+                return;
+            }
+
+            unlink($path);
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     /**
