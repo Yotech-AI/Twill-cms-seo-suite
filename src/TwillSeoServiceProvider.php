@@ -2,6 +2,7 @@
 
 namespace TwillSeo;
 
+use A17\Twill\Facades\TwillCapsules;
 use A17\Twill\Facades\TwillNavigation;
 use A17\Twill\View\Components\Navigation\NavigationLink;
 use Illuminate\Support\Facades\Blade;
@@ -38,6 +39,29 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
      * registers its model, repository, controller and routes by convention.
      */
     protected $autoRegisterCapsules = true;
+
+    /**
+     * Same as the parent's registerCapsule, but with the capsule's automatic
+     * navigation OFF: Twill would otherwise add a main-nav "SeoSettings"
+     * entry for the singleton, and this package's home is the shared
+     * Addons/Plugins page (plus the opt-in link in registerNavigation()).
+     */
+    protected function registerCapsule(string $name): void
+    {
+        $namespace = $this->getCapsuleNamespace().'\\Twill\\Capsules\\'.$name;
+
+        $dir = $this->getPackageDirectory().DIRECTORY_SEPARATOR.
+            'src'.DIRECTORY_SEPARATOR.
+            'Twill'.DIRECTORY_SEPARATOR.
+            'Capsules'.DIRECTORY_SEPARATOR.$name;
+
+        TwillCapsules::registerPackageCapsule(
+            $name,
+            $namespace,
+            $dir,
+            automaticNavigation: false,
+        );
+    }
 
     public function register(): void
     {

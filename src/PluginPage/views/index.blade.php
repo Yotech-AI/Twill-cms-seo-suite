@@ -149,12 +149,15 @@
 
 @section('customPageContent')
     <div class="yo-plugins">
-        <h1 class="yo-plugins__title">{{ __('Plugins') }}</h1>
-        <p class="yo-plugins__intro">{{ __('Installed Twill plugins. Select one to open it.') }}</p>
+        {{-- "Addons" is the user-facing label only: the route (/plugins), the
+             container keys and every interop identifier keep the plugins
+             name, so differently-versioned Yotech packages still cooperate. --}}
+        <h1 class="yo-plugins__title">{{ __('Addons') }}</h1>
+        <p class="yo-plugins__intro">{{ __('Installed Twill addons. Select one to open it.') }}</p>
 
         @if($plugins->isEmpty())
             <p class="yo-plugins__empty">
-                {{ __('No plugins are registered yet. Installing a Yotech Twill package adds it here automatically.') }}
+                {{ __('No addons are registered yet. Installing a Yotech Twill package adds it here automatically.') }}
             </p>
         @else
             <ul class="yo-plugins__list">

@@ -53,6 +53,18 @@ class SeoSetting extends Model
     ];
 
     /**
+     * The edit screen's header label. The table has no title column — this
+     * is a singleton settings record, not content — so without an accessor
+     * Twill renders a red "Missing title" placeholder. The title-editor
+     * pencil still shows but edits are not persisted (title is not
+     * fillable), matching how title-less Twill singletons behave.
+     */
+    public function getTitleAttribute(): string
+    {
+        return __('SEO settings');
+    }
+
+    /**
      * The single settings row (id 1), created on demand — the shape the rest
      * of the package has depended on since the storage task.
      */

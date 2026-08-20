@@ -23,9 +23,13 @@ beforeEach(fn () => test()->actingAsTwillAdmin());
 it('adds no entry to the admin navigation by default', function () {
     $titles = twillSeoNavigationTitles();
 
-    expect($titles)->toContain('Plugins')
+    expect($titles)->toContain('Addons')
         ->and(config('twill-seo.ui.navigation_link'))->toBeFalse()
-        ->and($titles)->not->toContain('SEO');
+        ->and($titles)->not->toContain('SEO')
+        // The settings singleton must never surface here either — its
+        // capsule registers with automatic navigation switched off; the
+        // Addons page is the package's home.
+        ->and($titles)->not->toContain('SeoSettings');
 });
 
 it('adds a navigation entry when a host opts in', function () {
