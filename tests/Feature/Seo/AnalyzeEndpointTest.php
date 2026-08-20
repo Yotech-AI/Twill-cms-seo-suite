@@ -35,17 +35,57 @@ class StubContentResolver implements SeoContentResolver
  *
  * @param  array<string,string>  $textByLocale
  */
-function attachFixtureBlock(Article $article, array $textByLocale): void
+function attachFixtureBlock(Article $article, array $textByLocale, string $editorName = 'default', int $position = 1): void
 {
     Block::create([
         'blockable_id' => $article->id,
         'blockable_type' => $article->getMorphClass(),
         'type' => FixtureContentBlock::getBlockIdentifier(),
-        'position' => 1,
-        'editor_name' => 'default',
+        'position' => $position,
+        'editor_name' => $editorName,
         'content' => ['text' => $textByLocale],
     ]);
 }
+
+it('analyzes blocks from the registry-configured named editors and ignores the rest', function () {
+    // Hosts with named editors (a hero editor above a content editor) list
+    // them in the registry; 'default' stops being consulted the moment the
+    // host takes over the list.
+    config(['twill-seo.models.articles.block_editors' => ['hero', 'content']]);
+
+    $repository = new ArticleRepository(new Article);
+    $article = $repository->create(['title' => ['en' => 'Editors', 'nl' => 'Editors']]);
+
+    attachFixtureBlock($article, ['en' => '<p>Zebra paragraphs live in the hero editor of this page.</p>'], 'hero', 1);
+    attachFixtureBlock($article, ['en' => '<p>The content editor adds a second paragraph of words.</p>'], 'content', 2);
+    attachFixtureBlock($article, ['en' => '<p>Quagga text hides in the unconfigured default editor.</p>'], 'default', 3);
+
+    $this->actingAsTwillAdmin();
+
+    // 'zebra' exists only in the hero block: the introduction check finding
+    // it proves the named editor was rendered, first, in reading order.
+    $hero = $this->postJson(twillSeoUrl('analyze'), [
+        'type' => 'articles',
+        'id' => $article->id,
+        'locale' => 'en',
+        'fields' => ['keyphrase' => 'zebra'],
+    ])->assertOk();
+
+    $heroIntro = collect($hero->json('report.seo.results'))->firstWhere('id', 'introductionKeyword');
+    expect($heroIntro['rating'])->toBe('good');
+
+    // 'quagga' exists only in the default editor, which the registry no
+    // longer lists — its absence proves unconfigured editors are excluded.
+    $default = $this->postJson(twillSeoUrl('analyze'), [
+        'type' => 'articles',
+        'id' => $article->id,
+        'locale' => 'en',
+        'fields' => ['keyphrase' => 'quagga'],
+    ])->assertOk();
+
+    $defaultIntro = collect($default->json('report.seo.results'))->firstWhere('id', 'introductionKeyword');
+    expect($defaultIntro['rating'])->toBe('bad');
+});
 
 it('never returns 200 to a guest, redirecting to the twill login instead', function () {
     // Deliberately a plain post() rather than postJson(): with no

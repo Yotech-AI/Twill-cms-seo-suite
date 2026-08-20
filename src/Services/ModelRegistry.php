@@ -29,6 +29,10 @@ final class ModelRegistry
         'url' => null,
         'content' => null,
         'content_fields' => [],
+        // Which block editors feed the content analysis. Twill's single-editor
+        // modules use 'default'; hosts with named editors (e.g. a hero editor
+        // above a content editor) list them all, in reading order.
+        'block_editors' => ['default'],
         'breadcrumbs' => null,
     ];
 

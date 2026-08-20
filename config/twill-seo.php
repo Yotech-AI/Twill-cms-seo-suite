@@ -21,6 +21,7 @@ return [
      *     'url' => null,
      *     'content' => null,
      *     'content_fields' => [],
+     *     'block_editors' => ['default'],   // named editors feed the analysis in this order
      *     'breadcrumbs' => null,
      * ],
      */

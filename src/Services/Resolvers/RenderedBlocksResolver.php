@@ -18,8 +18,6 @@ use TwillSeo\Support\TranslatedAttribute;
  */
 final class RenderedBlocksResolver implements SeoContentResolver
 {
-    private const EDITOR_NAME = 'default';
-
     public function __construct(private readonly ModelRegistry $registry) {}
 
     public function resolve(object $model, string $locale): ResolvedContent
@@ -53,11 +51,15 @@ final class RenderedBlocksResolver implements SeoContentResolver
     }
 
     /**
-     * Renders each root block of the default editor independently, so one
-     * block that fails to render (an unregistered type, a broken component)
-     * degrades that one block rather than losing every other block's text
-     * along with it — see BlockRenderer::fromEditor(), which this mirrors
-     * but per block instead of for the whole editor at once.
+     * Renders each root block independently, so one block that fails to
+     * render (an unregistered type, a broken component) degrades that one
+     * block rather than losing every other block's text along with it — see
+     * BlockRenderer::fromEditor(), which this mirrors but per block instead
+     * of for the whole editor at once.
+     *
+     * Editors come from the registry's block_editors entry (default:
+     * ['default']) and render in the configured order, so a host whose page
+     * is a hero editor above a content editor analyzes in reading order.
      */
     private function renderBlocks(object $model): string
     {
@@ -65,19 +67,26 @@ final class RenderedBlocksResolver implements SeoContentResolver
             return '';
         }
 
-        /** @var iterable<Block> $rootBlocks */
-        $rootBlocks = $model->blocks
-            ->where('editor_name', self::EDITOR_NAME)
-            ->whereNull('parent_id');
+        $key = $this->registry->keyFor($model);
+        $editors = $key !== null
+            ? (array) $this->registry->get($key)['block_editors']
+            : ['default'];
 
         $html = '';
 
-        foreach ($rootBlocks as $block) {
-            try {
-                $nested = BlockRenderer::getNestedBlocksForBlock($block, $model, self::EDITOR_NAME);
-                $html .= (new BlockRenderer([$nested]))->render();
-            } catch (Throwable $e) {
-                report($e);
+        foreach ($editors as $editorName) {
+            /** @var iterable<Block> $rootBlocks */
+            $rootBlocks = $model->blocks
+                ->where('editor_name', $editorName)
+                ->whereNull('parent_id');
+
+            foreach ($rootBlocks as $block) {
+                try {
+                    $nested = BlockRenderer::getNestedBlocksForBlock($block, $model, $editorName);
+                    $html .= (new BlockRenderer([$nested]))->render();
+                } catch (Throwable $e) {
+                    report($e);
+                }
             }
         }
 

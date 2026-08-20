@@ -278,3 +278,16 @@ queue worker, or Laravel Octane) must call `app(SeoSettings::class)->refresh()`
 itself after a settings change to see it; `SettingsController::update()`
 already does this for a normal admin request. This package has not been
 tested under Octane.
+
+## Named block editors
+
+The analyzer renders the block editors listed in the registry entry's `block_editors` (default `['default']`), in order. A host whose page types use named editors — say a `hero` editor above a `content` editor — lists them so the analysis reads the page the way a visitor does:
+
+```php
+'pages' => [
+    'model' => App\Models\Page::class,
+    'block_editors' => ['hero', 'content'],
+],
+```
+
+Editors not listed are excluded from the analysis entirely.
