@@ -279,6 +279,11 @@ onBeforeUnmount(() => {
         </div>
 
         <SavedModeBanner v-if="mode === 'saved'" />
+        <div v-if="meta && meta.keyphrase_is_list" class="tss-banner">
+            The keyphrase looks like a comma-separated list. The analysis treats it
+            as one long phrase, so every keyphrase check fails at once — enter a
+            single phrase for meaningful results.
+        </div>
         <StaleContentNotice v-if="staleContent" />
 
         <div v-if="error" class="tss-error">

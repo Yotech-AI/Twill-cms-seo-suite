@@ -55,6 +55,11 @@ class AnalyzeController extends Controller
                 'content_source' => $build->contentSource,
                 'word_count' => $report->insights?->wordCount ?? 0,
                 'analyzed_at' => now()->toIso8601String(),
+                // Editors paste comma-separated lists into the keyphrase
+                // field; the analysis then treats the whole list as ONE long
+                // phrase and everything reads red. The panel turns this flag
+                // into a hint.
+                'keyphrase_is_list' => str_contains($build->paper->keyword, ','),
             ],
         ]);
     }

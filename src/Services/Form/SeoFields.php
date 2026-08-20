@@ -50,10 +50,10 @@ class SeoFields
 
         array_push(
             $fields,
-            Input::make()->name('seo_keyphrase')->label(__('Focus keyphrase'))->translatable()
-                ->note(__('The main term or phrase you want this page to rank for.')),
-            Input::make()->name('seo_title')->label(__('SEO title'))->translatable()
-                ->maxLength(70)->note(__('Leave empty to use the title template.')),
+            // No ->note() on these: Twill renders notes beside the label,
+            // and in the narrow side column they overlap it.
+            Input::make()->name('seo_keyphrase')->label(__('Focus keyphrase'))->translatable(),
+            Input::make()->name('seo_title')->label(__('SEO title'))->translatable()->maxLength(70),
             Input::make()->name('seo_description')->label(__('Meta description'))->translatable()
                 ->type('textarea')->rows(3)->maxLength(170),
         );
