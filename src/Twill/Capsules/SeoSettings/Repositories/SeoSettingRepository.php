@@ -2,6 +2,7 @@
 
 namespace TwillSeo\Twill\Capsules\SeoSettings\Repositories;
 
+use A17\Twill\Repositories\Behaviors\HandleFiles;
 use A17\Twill\Repositories\Behaviors\HandleMedias;
 use A17\Twill\Repositories\ModuleRepository;
 use Throwable;
@@ -20,10 +21,12 @@ use TwillSeo\Twill\Capsules\SeoSettings\Models\SeoSetting;
  *   feature_{key}                -> features JSON keys
  *   ct_{registryKey}_{setting}   -> content_types.{registryKey} JSON keys
  *   advanced_*                   -> advanced JSON keys
- * The logo / default share image are real media roles (HandleMedias).
+ * The logo is a file role (HandleFiles — SVG-friendly); the default share
+ * image is a media role (HandleMedias).
  */
 class SeoSettingRepository extends ModuleRepository
 {
+    use HandleFiles;
     use HandleMedias;
 
     private const GENERAL_STRINGS = ['site_name', 'tagline', 'separator', 'entity_type', 'entity_name'];

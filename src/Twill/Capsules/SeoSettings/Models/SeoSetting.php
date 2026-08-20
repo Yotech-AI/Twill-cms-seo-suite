@@ -2,25 +2,37 @@
 
 namespace TwillSeo\Twill\Capsules\SeoSettings\Models;
 
+use A17\Twill\Models\Behaviors\HasFiles;
 use A17\Twill\Models\Behaviors\HasMedias;
 use A17\Twill\Models\Model;
 
 /**
  * The settings singleton, as a real Twill model so the settings screen is a
  * native Twill form: full content width, native fields, and the built-in
- * media library for the logo and default share image (media roles below —
- * the old custom picker stored bare ids in the general JSON blob instead).
+ * libraries for the images. The logo attaches through Twill's FILE library
+ * (a logo is usually an SVG, which the media library's image pipeline
+ * rejects/rasterizes); the default share image stays a media role. The
+ * legacy media logo role and the even older bare-id general JSON keys both
+ * remain readable fallbacks — see SeoSettings::logo().
  *
  * The four JSON columns are the same storage the package has always used;
  * every SeoSettings accessor reads them unchanged.
  */
 class SeoSetting extends Model
 {
+    use HasFiles;
     use HasMedias;
 
     public const LOGO_ROLE = 'logo';
 
     public const DEFAULT_SHARE_ROLE = 'default_share';
+
+    /**
+     * File role for the logo. Same string as the legacy media LOGO_ROLE on
+     * purpose — files and medias pivot through different tables, so the two
+     * never collide, and one "logo" name stays true everywhere.
+     */
+    public $filesParams = [self::LOGO_ROLE];
 
     protected $table = 'twill_seo_settings';
 

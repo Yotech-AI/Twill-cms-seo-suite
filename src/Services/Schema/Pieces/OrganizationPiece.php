@@ -5,7 +5,6 @@ namespace TwillSeo\Services\Schema\Pieces;
 use TwillSeo\Contracts\GraphPiece;
 use TwillSeo\Services\Schema\SchemaContext;
 use TwillSeo\Services\Schema\SchemaIds;
-use TwillSeo\Support\TwillMedia;
 
 /**
  * The site's schema.org identity when settings entityType() is
@@ -27,15 +26,13 @@ final class OrganizationPiece implements GraphPiece
             'url' => rtrim($context->siteUrl, '/'),
         ];
 
-        $logo = TwillMedia::fromMediaId($context->settings->logoMediaId());
+        // A file-library logo (the settings screen's picker) carries no
+        // pixel dimensions — width/height are optional on ImageObject.
+        $logo = $context->settings->logo();
 
         if ($logo !== null) {
-            $node['logo'] = [
-                '@type' => 'ImageObject',
-                'url' => $logo['url'],
-                'width' => $logo['width'],
-                'height' => $logo['height'],
-            ];
+            $node['logo'] = ['@type' => 'ImageObject', 'url' => $logo['url']]
+                + array_intersect_key($logo, ['width' => true, 'height' => true]);
         }
 
         $sameAs = $context->settings->socialProfiles();

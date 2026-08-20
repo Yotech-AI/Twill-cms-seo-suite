@@ -2,10 +2,12 @@
 
 namespace TwillSeo\Services\Settings;
 
+use A17\Twill\Services\FileLibrary\FileService;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 use TwillSeo\Models\SeoSetting;
 use TwillSeo\Services\ModelRegistry;
+use TwillSeo\Support\TwillMedia;
 
 /**
  * Merged accessor over TwillSeo\Models\SeoSetting::current() (the single
@@ -106,6 +108,57 @@ final class SeoSettings
         }
 
         return $this->siteName();
+    }
+
+    /**
+     * The entity logo as {url, width?, height?} — the shape the schema
+     * pieces embed as an ImageObject. Precedence: the file role (the
+     * settings screen's native picker — the file library, because a logo is
+     * usually an SVG), then the legacy media role / JSON id via
+     * logoMediaId(). A file has no pixel dimensions in Twill's files table
+     * (and an SVG often has none at all), so the file branch returns url
+     * only; schema.org's width/height are optional.
+     *
+     * @return ?array{url: string, width?: int, height?: int}
+     */
+    public function logo(): ?array
+    {
+        $fileUrl = $this->logoFileUrl();
+
+        if ($fileUrl !== null) {
+            return ['url' => $fileUrl];
+        }
+
+        return TwillMedia::fromMediaId($this->logoMediaId());
+    }
+
+    /**
+     * Role-only lookup, deliberately ignoring the pivot's locale (unlike
+     * HasFiles::fileObject(), which filters on the current app locale): the
+     * logo is one site-wide asset, and the row it was attached under simply
+     * reflects whichever admin language was active at save time.
+     */
+    private function logoFileUrl(): ?string
+    {
+        $row = $this->row();
+
+        if ($row === null) {
+            return null;
+        }
+
+        try {
+            $file = $row->files()->wherePivot('role', SeoSetting::LOGO_ROLE)->first();
+
+            if ($file === null) {
+                return null;
+            }
+
+            return (string) FileService::getUrl($file->uuid);
+        } catch (Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 
     /**

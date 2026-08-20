@@ -5,6 +5,7 @@ namespace TwillSeo\Twill\Capsules\SeoSettings\Http\Controllers;
 use A17\Twill\Http\Controllers\Admin\SingletonModuleController as BaseModuleController;
 use A17\Twill\Models\Contracts\TwillModelContract;
 use A17\Twill\Services\Forms\Fields\Checkbox;
+use A17\Twill\Services\Forms\Fields\Files;
 use A17\Twill\Services\Forms\Fields\Input;
 use A17\Twill\Services\Forms\Fields\Medias;
 use A17\Twill\Services\Forms\Fields\Select;
@@ -16,12 +17,38 @@ use TwillSeo\Twill\Capsules\SeoSettings\Models\SeoSetting;
 
 /**
  * The SEO settings screen as a native Twill singleton: full content width,
- * Twill's own form fields, and the built-in media library for the logo and
- * default share image. Field names follow the repository's mapping contract
- * (general_* / feature_* / ct_{key}_* / advanced_*).
+ * Twill's own form fields, the file library for the logo (SVG-friendly) and
+ * the media library for the default share image. Field names follow the
+ * repository's mapping contract (general_* / feature_* / ct_{key}_* /
+ * advanced_*).
  */
 class SeoSettingController extends BaseModuleController
 {
+    /**
+     * The schema.org types the per-content-type dropdown offers. A curated
+     * list rather than a free Input so a typo cannot silently produce
+     * invalid structured data. Covers both sides of the one decision the
+     * package derives from this value — PageSeo::isArticleType() (Article,
+     * *Article, *Posting -> og:type article + an extra Article graph node;
+     * everything else -> website) — plus the common WebPage subtypes Google
+     * documents. A type configured in code (the registry) or already stored
+     * that falls outside this list is merged into the options at render
+     * time, so exotic hosts keep round-tripping (see contentTypeFieldset()).
+     */
+    private const SCHEMA_TYPES = [
+        'WebPage',
+        'AboutPage',
+        'ContactPage',
+        'CollectionPage',
+        'FAQPage',
+        'ProfilePage',
+        'SearchResultsPage',
+        'Article',
+        'BlogPosting',
+        'NewsArticle',
+        'TechArticle',
+    ];
+
     /**
      * Override the module name without a typed property to maintain
      * compatibility with the parent controller which defines this
@@ -43,7 +70,7 @@ class SeoSettingController extends BaseModuleController
         $form->addFieldset($this->featuresFieldset());
 
         foreach (app(ModelRegistry::class)->all() as $registryKey => $registryEntry) {
-            $form->addFieldset($this->contentTypeFieldset($registryKey));
+            $form->addFieldset($this->contentTypeFieldset($registryKey, $registryEntry, $model));
         }
 
         $form->addFieldset($this->advancedFieldset());
@@ -64,7 +91,11 @@ class SeoSettingController extends BaseModuleController
                 ]))
                 ->default('organization'),
             Input::make()->name('general_entity_name')->label(__('Publisher name')),
-            Medias::make()->name(SeoSetting::LOGO_ROLE)->label(__('Logo'))->max(1),
+            // File library, not media library: logos are typically SVGs,
+            // which the image pipeline cannot serve as-is. Files serve the
+            // uploaded original untouched.
+            Files::make()->name(SeoSetting::LOGO_ROLE)->label(__('Logo'))
+                ->note(__('Prefer SVG or PNG — served exactly as uploaded')),
             Medias::make()->name(SeoSetting::DEFAULT_SHARE_ROLE)->label(__('Default share image'))->max(1),
             Input::make()->name('general_social_profiles')->label(__('Social profiles'))
                 ->type('textarea')->rows(4)
@@ -92,7 +123,10 @@ class SeoSettingController extends BaseModuleController
         return Fieldset::make()->id('features')->title(__('Features'))->fields($fields);
     }
 
-    private function contentTypeFieldset(string $registryKey): Fieldset
+    /**
+     * @param  array<string,mixed>  $registryEntry
+     */
+    private function contentTypeFieldset(string $registryKey, array $registryEntry, TwillModelContract $model): Fieldset
     {
         return Fieldset::make()
             ->id('ct-'.str_replace('_', '-', $registryKey))
@@ -101,9 +135,34 @@ class SeoSettingController extends BaseModuleController
                 Input::make()->name("ct_{$registryKey}_title_template")->label(__('Title template'))
                     ->note(__('Empty uses the default template')),
                 Input::make()->name("ct_{$registryKey}_description_template")->label(__('Description template')),
-                Input::make()->name("ct_{$registryKey}_schema_type")->label(__('Schema.org type')),
+                Select::make()->name("ct_{$registryKey}_schema_type")->label(__('Schema.org type'))
+                    ->options(Options::fromArray($this->schemaTypeOptions($registryKey, $registryEntry, $model))),
                 Checkbox::make()->name("ct_{$registryKey}_sitemap")->label(__('Include in the sitemap')),
             ]);
+    }
+
+    /**
+     * SCHEMA_TYPES plus, when they fall outside it, this type's code-level
+     * registry default and its currently stored override — without those a
+     * host that configured an exotic type (e.g. Recipe) would see an empty
+     * dropdown and saving would silently replace the value.
+     *
+     * @param  array<string,mixed>  $registryEntry
+     * @return array<string,string>
+     */
+    private function schemaTypeOptions(string $registryKey, array $registryEntry, TwillModelContract $model): array
+    {
+        $types = self::SCHEMA_TYPES;
+
+        $stored = (array) (((array) ($model->content_types ?? []))[$registryKey] ?? []);
+
+        foreach ([$registryEntry['schema_type'] ?? null, $stored['schema_type'] ?? null] as $extra) {
+            if (is_string($extra) && $extra !== '' && ! in_array($extra, $types, true)) {
+                $types[] = $extra;
+            }
+        }
+
+        return array_combine($types, $types);
     }
 
     private function advancedFieldset(): Fieldset

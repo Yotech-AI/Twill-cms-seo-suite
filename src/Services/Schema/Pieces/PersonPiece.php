@@ -5,7 +5,6 @@ namespace TwillSeo\Services\Schema\Pieces;
 use TwillSeo\Contracts\GraphPiece;
 use TwillSeo\Services\Schema\SchemaContext;
 use TwillSeo\Services\Schema\SchemaIds;
-use TwillSeo\Support\TwillMedia;
 
 /**
  * The site's schema.org identity when settings entityType() is 'person' —
@@ -27,19 +26,16 @@ final class PersonPiece implements GraphPiece
             'url' => rtrim($context->siteUrl, '/'),
         ];
 
-        // "logo" for a Person node too (schema.org allows it on Person, and
-        // it is the same "avatar/portrait used to represent this entity"
-        // concept OrganizationPiece uses it for) rather than inventing a
-        // second settings field just for the Person case.
-        $logo = TwillMedia::fromMediaId($context->settings->logoMediaId());
+        // The settings logo doubles as the Person's image (the same
+        // "avatar/portrait used to represent this entity" concept
+        // OrganizationPiece uses it for) rather than inventing a second
+        // settings field just for the Person case. A file-library logo
+        // carries no pixel dimensions — width/height are optional here.
+        $logo = $context->settings->logo();
 
         if ($logo !== null) {
-            $node['image'] = [
-                '@type' => 'ImageObject',
-                'url' => $logo['url'],
-                'width' => $logo['width'],
-                'height' => $logo['height'],
-            ];
+            $node['image'] = ['@type' => 'ImageObject', 'url' => $logo['url']]
+                + array_intersect_key($logo, ['width' => true, 'height' => true]);
         }
 
         $sameAs = $context->settings->socialProfiles();
