@@ -17,6 +17,10 @@ return new class extends Migration
             createDefaultTranslationsTableFields($table, 'article');
             $table->string('title', 200)->nullable();
             $table->text('description')->nullable();
+            // A retired hand-rolled SEO column, the shape older host sites
+            // carry — deliberately NOT in the model's translatedAttributes.
+            // twill-seo:migrate-legacy's tests copy it into the suite tables.
+            $table->string('seo_title')->nullable();
         });
 
         Schema::create('article_slugs', function (Blueprint $table) {

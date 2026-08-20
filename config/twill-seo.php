@@ -80,6 +80,18 @@ return [
         'throttle' => '60,1',
     ],
 
+    'ui' => [
+        /*
+         * Add a top-level entry to the Twill admin navigation.
+         *
+         * Off by default. The suite already appears on the shared Plugins
+         * page, so a second entry in the main navigation is duplication
+         * rather than access. Turn it on for a site whose editors live in
+         * the SEO screens.
+         */
+        'navigation_link' => false,
+    ],
+
     // Throttle for the settings admin's mutating endpoint (PUT /settings).
     // Looser than analysis.throttle above: this is a handful of deliberate
     // admin saves, not a per-keystroke debounced call.

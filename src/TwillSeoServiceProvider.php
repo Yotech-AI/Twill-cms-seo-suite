@@ -52,6 +52,7 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
             $this->commands([
                 Console\DoctorCommand::class,
                 Console\InstallCommand::class,
+                Console\MigrateLegacyCommand::class,
             ]);
         }
     }
@@ -235,8 +236,20 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
             ->group(__DIR__.'/../routes/public.php');
     }
 
+    /**
+     * Off by default: the shared Plugins page is where a plugin lives, and
+     * listing every installed plugin in the admin's main navigation as well
+     * defeats the point of having that page. A host whose editors work in
+     * the SEO screens constantly can set twill-seo.ui.navigation_link to
+     * true and get a top-level entry back. (Family rule — the redirects and
+     * AI-assistant packages follow the same convention.)
+     */
     protected function registerNavigation(): void
     {
+        if (! config('twill-seo.ui.navigation_link', false)) {
+            return;
+        }
+
         // Never bind A17\Twill\TwillNavigation ourselves — the plugin-support
         // base class owns that swap (first plugin to register wins the page).
         TwillNavigation::addLink(

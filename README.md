@@ -87,7 +87,7 @@ public function getForm(TwillModelContract $model): Form
 
 That's it: the admin gets a full SEO fieldset (keyphrase, title, description, social fields, and — when the analysis feature is on — a live traffic-light panel), and the front end gets a title, meta description, canonical link, robots meta, Open Graph, Twitter Cards and a JSON-LD `@graph`, all resolved through one cascade (DB row → per-type template → config default).
 
-Visit `{admin}/seo` (linked from the admin navigation as **SEO**) to configure site-wide settings, or run `php artisan twill-seo:doctor` at any time to check the install.
+Visit `{admin}/seo` (reachable from the **Plugins** page card; set `twill-seo.ui.navigation_link` to `true` for an optional top-level nav entry) to configure site-wide settings, or run `php artisan twill-seo:doctor` at any time to check the install.
 
 ## Features
 
