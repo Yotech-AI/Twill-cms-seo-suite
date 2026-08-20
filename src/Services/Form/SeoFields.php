@@ -7,6 +7,7 @@ use A17\Twill\Services\Forms\Fields\Checkbox;
 use A17\Twill\Services\Forms\Fields\Input;
 use A17\Twill\Services\Forms\Fields\Medias;
 use A17\Twill\Services\Forms\Fieldset;
+use A17\Twill\Services\Forms\Form;
 use TwillSeo\Services\Settings\SeoSettings;
 
 /**
@@ -79,6 +80,24 @@ class SeoFields
         }
 
         return Fieldset::make()->id('seo')->title(__('SEO'))->closed()->fields($fields);
+    }
+
+    /**
+     * The same fieldset packaged for a controller's getSideFieldsets(), so
+     * the whole SEO section — panel, stoplights and inputs — sits in Twill's
+     * right column under the publish widget instead of the main form:
+     *
+     *     public function getSideFieldsets(TwillModelContract $model): Form
+     *     {
+     *         return SeoFields::sideForm();
+     *     }
+     *
+     * (Append to an existing side Form with ->add(SeoFields::fieldset())
+     * when the module already has side fields of its own.)
+     */
+    public static function sideForm(bool $analysis = true, bool $social = true, bool $advanced = true): Form
+    {
+        return Form::make([self::fieldset($analysis, $social, $advanced)]);
     }
 
     /**

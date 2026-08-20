@@ -83,25 +83,28 @@
 .tss-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 18px;
 }
 
 .tss-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    /* The two stoplights are the panel's headline — render them a step
+       larger than the surrounding copy so the verdict reads at a glance. */
+    font-size: 16px;
 }
 
 .tss-chip__dot {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     flex: none;
 }
 
 .tss-chip__label {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* ---- Banners ---- */
