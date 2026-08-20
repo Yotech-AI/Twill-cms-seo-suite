@@ -11,7 +11,7 @@ it('registers our manifest on the shared Plugins registry', function () {
     $manifest = $registry['yotech-ai/twill-cms-seo-suite'];
 
     expect($manifest['name'])->toBe('Twill SEO')
-        ->and($manifest['route'])->toBe(config('twill.admin_route_name_prefix', 'twill.').'seo.index');
+        ->and($manifest['route'])->toBe(config('twill.admin_route_name_prefix', 'twill.').'seoSetting');
 });
 
 it('owns the shared Plugins page — the only Yotech plugin installed here', function () {
@@ -53,11 +53,12 @@ it('renders the Plugins stylesheet in the head, above Vue\'s mount point', funct
         );
 });
 
-it('serves the settings page to an authenticated admin', function () {
+it('redirects the legacy settings URL to the native settings singleton', function () {
+    // The settings screen became the SeoSettings Twill singleton; the old
+    // /seo URL stays alive as a bookmark-friendly redirect.
     $this->actingAsTwillAdmin()
         ->get(twillSeoUrl())
-        ->assertOk()
-        ->assertSee('Twill SEO');
+        ->assertRedirect(route(config('twill.admin_route_name_prefix', 'twill.').'seoSetting'));
 });
 
 it('redirects an unauthenticated request to the Twill login', function () {

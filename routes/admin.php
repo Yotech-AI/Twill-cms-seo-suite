@@ -2,9 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use TwillSeo\Http\Controllers\AnalyzeController;
-use TwillSeo\Http\Controllers\MediaSearchController;
-use TwillSeo\Http\Controllers\SettingsController;
-use TwillSeo\Http\Controllers\SettingsPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,18 +13,17 @@ use TwillSeo\Http\Controllers\SettingsPageController;
 | prefix {admin_app_path}/seo, route name prefix {admin_route_name_prefix}seo.
 | (e.g. twill.seo.*).
 |
+| The settings screen itself is the SeoSettings Twill singleton capsule
+| (native form + media library) — this file only carries what is not a
+| Twill module: the analyze endpoint and a bookmark-friendly redirect from
+| the old /seo settings URL to the singleton.
+|
 */
 
-Route::get('/', [SettingsPageController::class, 'index'])->name('index');
+Route::get('/', function () {
+    return redirect()->route(config('twill.admin_route_name_prefix', 'twill.').'seoSetting');
+})->name('index');
 
 Route::post('/analyze', AnalyzeController::class)
     ->name('analyze')
     ->middleware('throttle:'.config('twill-seo.analysis.throttle', '60,1'));
-
-Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
-
-Route::put('/settings', [SettingsController::class, 'update'])
-    ->name('settings.update')
-    ->middleware('throttle:'.config('twill-seo.settings.throttle', '30,1'));
-
-Route::get('/media', MediaSearchController::class)->name('media.index');

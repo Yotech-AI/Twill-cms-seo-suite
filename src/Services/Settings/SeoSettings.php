@@ -108,16 +108,42 @@ final class SeoSettings
         return $this->siteName();
     }
 
+    /**
+     * The native settings singleton attaches these as real Twill media
+     * roles; the JSON ids remain as a read-fallback for installs whose data
+     * predates the role migration (and for config-level defaults).
+     */
     public function logoMediaId(): ?int
     {
-        return $this->intOrNull($this->general(), 'logo_media_id')
+        return $this->mediaRoleId(SeoSetting::LOGO_ROLE)
+            ?? $this->intOrNull($this->general(), 'logo_media_id')
             ?? $this->intFromConfig('twill-seo.general.logo_media_id');
     }
 
     public function defaultShareMediaId(): ?int
     {
-        return $this->intOrNull($this->general(), 'default_share_media_id')
+        return $this->mediaRoleId(SeoSetting::DEFAULT_SHARE_ROLE)
+            ?? $this->intOrNull($this->general(), 'default_share_media_id')
             ?? $this->intFromConfig('twill-seo.general.default_share_media_id');
+    }
+
+    private function mediaRoleId(string $role): ?int
+    {
+        $row = $this->row();
+
+        if ($row === null) {
+            return null;
+        }
+
+        try {
+            $media = $row->medias()->wherePivot('role', $role)->first();
+        } catch (Throwable $e) {
+            report($e);
+
+            return null;
+        }
+
+        return $media?->id !== null ? (int) $media->id : null;
     }
 
     /**

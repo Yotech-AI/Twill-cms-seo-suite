@@ -1,13 +1,11 @@
 import { createApp } from 'vue';
 import PanelApp from './panel/PanelApp.vue';
-import SettingsApp from './settings/SettingsApp.vue';
 import './styles.css';
 
 // Mount-type registry, kept as a lookup table specifically so a new mount
 // type is one more entry here, not a rewrite of the boot logic below.
 const MOUNTS = {
     panel: PanelApp,
-    settings: SettingsApp,
 };
 
 function parseConfig(element) {

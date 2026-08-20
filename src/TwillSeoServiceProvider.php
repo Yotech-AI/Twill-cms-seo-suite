@@ -33,11 +33,11 @@ use TwillSeo\Support\TranslatorMessageRenderer;
 class TwillSeoServiceProvider extends TwillPluginServiceProvider
 {
     /**
-     * The package ships no Twill capsules, so skip the capsule directory scan
-     * TwillPackageServiceProvider performs by default — it would look for
-     * src/Twill/Capsules and find nothing.
+     * The SeoSettings singleton (the native settings screen) lives in
+     * src/Twill/Capsules — TwillPackageServiceProvider's capsule scan
+     * registers its model, repository, controller and routes by convention.
      */
-    protected $autoRegisterCapsules = false;
+    protected $autoRegisterCapsules = true;
 
     public function register(): void
     {
@@ -147,7 +147,7 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
             'name' => 'Twill SEO',
             'description' => 'Yoast-style SEO: content analysis with traffic lights, meta & social tags, schema.org and XML sitemaps.',
             'package' => 'yotech-ai/twill-cms-seo-suite',
-            'route' => config('twill.admin_route_name_prefix', 'twill.').'seo.index',
+            'route' => config('twill.admin_route_name_prefix', 'twill.').'seoSetting',
         ];
     }
 
@@ -255,7 +255,7 @@ class TwillSeoServiceProvider extends TwillPluginServiceProvider
         TwillNavigation::addLink(
             NavigationLink::make()
                 ->title('SEO')
-                ->forRoute(config('twill.admin_route_name_prefix', 'twill.').'seo.index')
+                ->forRoute(config('twill.admin_route_name_prefix', 'twill.').'seoSetting')
         );
     }
 }

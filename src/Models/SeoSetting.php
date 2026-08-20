@@ -2,41 +2,12 @@
 
 namespace TwillSeo\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use TwillSeo\Twill\Capsules\SeoSettings\Models\SeoSetting as CapsuleSeoSetting;
 
 /**
- * Install-wide SEO settings (a single row, id 1). Only the migration and this
- * model land in this task — the accessor service that applies these on top
- * of config('twill-seo') defaults, and the settings admin UI, are later work.
- *
- * @property array|null $general
- * @property array|null $content_types
- * @property array|null $features
- * @property array|null $advanced
+ * Backwards-compatible name: the settings model moved into the SeoSettings
+ * Twill capsule when the settings screen became a native singleton module.
+ * Same table, same columns, same current() — existing imports (the
+ * SeoSettings accessor's callers, host code, tests) keep working unchanged.
  */
-class SeoSetting extends Model
-{
-    protected $table = 'twill_seo_settings';
-
-    protected $guarded = [];
-
-    protected function casts(): array
-    {
-        return [
-            'general' => 'array',
-            'content_types' => 'array',
-            'features' => 'array',
-            'advanced' => 'array',
-        ];
-    }
-
-    /**
-     * The single settings row, created on first access. No secrets live on
-     * this model (unlike e.g. the AI package's TwillAiSetting), so none of
-     * the above need an encrypted cast.
-     */
-    public static function current(): self
-    {
-        return static::query()->firstOrCreate(['id' => 1]);
-    }
-}
+class SeoSetting extends CapsuleSeoSetting {}

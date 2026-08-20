@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use TwillSeo\Models\SeoEntry;
 use TwillSeo\Tests\Fixtures\Models\Article;
 use TwillSeo\Tests\Fixtures\Repositories\ArticleRepository;
@@ -91,36 +90,14 @@ it('writes nothing in dry-run mode', function () {
 });
 
 it('clones a legacy media role onto the suite share-image role exactly once', function () {
-    // The Testbench harness never migrates Twill's media tables (they live
-    // outside migrations/default), so this test carries the minimal schema
-    // the command touches. Real hosts always have the full tables.
-    if (! Schema::hasTable('medias')) {
-        Schema::create('medias', function ($table): void {
-            $table->bigIncrements('id');
-            $table->string('uuid');
-            $table->string('filename');
-            $table->integer('width')->nullable();
-            $table->integer('height')->nullable();
-            $table->timestamps();
-        });
-    }
-
-    if (! Schema::hasTable('mediables')) {
-        Schema::create('mediables', function ($table): void {
-            $table->bigIncrements('id');
-            $table->unsignedBigInteger('media_id');
-            $table->unsignedBigInteger('mediable_id');
-            $table->string('mediable_type');
-            $table->string('role');
-            $table->string('crop')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
-    }
+    // Twill's real (config-named) media tables exist in the harness — the
+    // command must read the names from config, exactly as prefixed hosts do.
+    $mediasTable = config('twill.medias_table', 'twill_medias');
+    $mediablesTable = config('twill.mediables_table', 'twill_mediables');
 
     $article = createLegacyArticle(['en' => 'Legacy title']);
 
-    $mediaId = DB::table('medias')->insertGetId([
+    $mediaId = DB::table($mediasTable)->insertGetId([
         'uuid' => 'legacy/share.jpg',
         'filename' => 'share.jpg',
         'width' => 1200,
@@ -129,12 +106,14 @@ it('clones a legacy media role onto the suite share-image role exactly once', fu
         'updated_at' => now(),
     ]);
 
-    DB::table('mediables')->insert([
+    DB::table($mediablesTable)->insert([
         'media_id' => $mediaId,
         'mediable_id' => $article->id,
         'mediable_type' => $article->getMorphClass(),
         'role' => 'legacy_share',
         'crop' => 'default',
+        'metadatas' => '{}',
+        'locale' => 'en',
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -150,7 +129,7 @@ it('clones a legacy media role onto the suite share-image role exactly once', fu
         '--media-role' => 'legacy_share',
     ])->assertSuccessful();
 
-    $suiteRows = DB::table('mediables')
+    $suiteRows = DB::table($mediablesTable)
         ->where('mediable_type', $article->getMorphClass())
         ->where('mediable_id', $article->id)
         ->where('role', Article::OG_IMAGE_ROLE)

@@ -235,11 +235,15 @@ class MigrateLegacyCommand extends Command
      */
     private function cloneMediaRole(string $morphClass, string $legacyRole, bool $dryRun): int
     {
+        // The pivot table's name is host configuration (twill_mediables by
+        // default on prefixed installs) — never the literal 'mediables'.
+        $table = (string) config('twill.mediables_table', 'mediables');
+
         // Older Twill versions shaped this table differently; only filter on
         // soft deletes when the column is actually there.
-        $hasSoftDeletes = Schema::hasColumn('mediables', 'deleted_at');
+        $hasSoftDeletes = Schema::hasColumn($table, 'deleted_at');
 
-        $legacyRows = DB::table('mediables')
+        $legacyRows = DB::table($table)
             ->where('mediable_type', $morphClass)
             ->where('role', $legacyRole)
             ->when($hasSoftDeletes, fn ($query) => $query->whereNull('deleted_at'))
@@ -248,7 +252,7 @@ class MigrateLegacyCommand extends Command
         $cloned = 0;
 
         foreach ($legacyRows->groupBy('mediable_id') as $mediableId => $rows) {
-            $alreadyHasSuiteRole = DB::table('mediables')
+            $alreadyHasSuiteRole = DB::table($table)
                 ->where('mediable_type', $morphClass)
                 ->where('mediable_id', $mediableId)
                 ->where('role', self::OG_IMAGE_ROLE)
@@ -267,7 +271,7 @@ class MigrateLegacyCommand extends Command
                     $clone['created_at'] = now();
                     $clone['updated_at'] = now();
 
-                    DB::table('mediables')->insert($clone);
+                    DB::table($table)->insert($clone);
                 }
 
                 $cloned++;

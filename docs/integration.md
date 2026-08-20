@@ -259,25 +259,24 @@ replaces. A host that wants a template fixed in code (never editable from
 the admin) has no built-in way to lock that — the settings row always wins
 once anything has been saved there for that content type.
 
-## The settings row: PUT semantics and long-lived runtimes
+## The settings singleton: save semantics and long-lived runtimes
 
-`PUT {admin}/seo/settings` wholesale-replaces one entire submitted section —
-`general`, `content_types`, `features` or `advanced` — with exactly what the
-client sent, not a per-key merge (see `SettingsUpdateRequest`'s own doc
-comment on why); because the settings admin UI always seeds its local state
-from a prior `GET` first, in practice this means the first save through the
-admin freezes every key of that section, including ones the admin never
-touched, to whatever it resolved to at that moment — a later change to that
-section's `config/twill-seo.php` defaults stops reaching this install until
-the settings admin saves that section again.
+The settings screen is a native Twill singleton module (the `SeoSettings`
+capsule). Saving it writes each submitted field into the matching key of the
+row's four JSON columns; empty template fields are *removed* from the row so
+the config/registry fallback applies again, while feature and sitemap
+checkboxes always store an explicit boolean — after the first save those
+booleans are row-authoritative and a later change to the matching
+`config/twill-seo.php` default stops reaching this install until the admin
+saves again.
 
 `SeoSettings` memoizes the settings row for the lifetime of one instance,
 and is bound as a container singleton (see its own class doc comment) — a
 long-lived PHP runtime that does not start a fresh container per request (a
 queue worker, or Laravel Octane) must call `app(SeoSettings::class)->refresh()`
-itself after a settings change to see it; `SettingsController::update()`
-already does this for a normal admin request. This package has not been
-tested under Octane.
+itself after a settings change to see it; the singleton's repository already
+does this for a normal admin save. This package has not been tested under
+Octane.
 
 ## Named block editors
 
